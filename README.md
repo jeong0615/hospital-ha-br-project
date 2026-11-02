@@ -4,122 +4,41 @@
 
 ## ✦ 프로젝트 개요
 
+><br>
+>
 >의료 환경의 IT 인프라는 환자 진료와 핵심 업무의 연속성에 직접적인 영향을 미치므로, **장애 발생 시 서비스 중단을 최소화하고 신속한 복구 체계를 확보하는 것이 중요하다.**
 >
 >본 프로젝트는 병원 인프라의 **고가용성(HA)과 재해복구(DR)를 통합하여 서비스 연속성을 확보**하는 것을 목표로 한다. <br>
-> **(RTO ≤ 5m / RPO ≤ 3m / RPO(Dump) ≤ 30m)**
+> **RTO/RPO는 설계 목표와 실측 결과를 구분해 관리한다. 전체 Live E2E RTO/RPO 실측: `NOT_MEASURED`**
 >
 >온프레미스 환경에서는 **네트워크·게이트웨이·방화벽 이중화를 통한 HA**를 구성하고, MSP에서는 **인프라·보안 통합 관제와 DR 운영을 중앙 관리**한다.
 >
 >온프레미스에서 복구가 어려운 장애 발생 시에는 MSP 서버의 **Terraform과 Ansible 기반 IaC 자동화를 통해 AWS DR 환경으로 Failover**하고, 서비스 정상화 이후 Failback을 수행하는 **Hybrid Cloud 기반 HA/DR 시스템 구축**이 본 프로젝트의 핵심이다.
-
+>
+><br>
 <br>
 
-### 하이브리드 클라우드 전체 서비스 구조
+## 시스템 구성 한눈에 보기
 
-```mermaid
-%%{init: {"theme": "base", "themeVariables": {
-    "background": "#FFFFFF",
-    "primaryColor": "#E8F4FF",
-    "primaryTextColor": "#145A9C",
-    "primaryBorderColor": "#C9E3F5",
-    "lineColor": "#C5C5C5",
-    "clusterBkg": "#F5F5F5",
-    "clusterBorder": "#E5E5E5",
-    "edgeLabelBackground": "#FFFFFF",
-    "fontFamily": "Arial",
-    "fontSize": "13px"
-}}}%%
+| 영역 | 핵심 구성 | 역할 |
+| :--- | :--- | :--- |
+| **HIS (On-Premise)** | Cisco / GNS3 / pfSense / Web·EMR·DB | 병원 서비스 운영, 네트워크 분리, HA 및 접근 제어 |
+| **MSP** | Zabbix / Wazuh / Grafana / Slack / Terraform·Ansible | 통합 관제, 2인 승인, DR 실행 제어 |
+| **CSP (AWS DR)** | EC2 / VPC / S3 / MySQL NR / ECR / GitHub Actions | 대체 서비스 운영, DB 복구, 이미지 빌드·관리 |
 
-flowchart LR
-
-    subgraph HIS["HIS / On-Premise"]
-        direction TB
-
-        NET["Network / Security"]
-        WEB["Web Server"]
-        EMR["EMR(Doc) Server"]
-        DB["MySQL DB"]
-
-        WEB --> DB
-        EMR --> DB
-    end
-
-    subgraph MSP["MSP / Integrated Management"]
-        direction LR
-
-        WG_MSP["WireGuard"]
-        ZBX["Zabbix"]
-        WAZUH["Wazuh"]
-        GRAFANA["Grafana"]
-        CHATOPS["Slack ChatOps"]
-        IAC["Terraform / Ansible"]
-        BACKUP["Dump Backup<br/>Collection / Validation"]
-
-        ZBX --> GRAFANA
-        WAZUH --> GRAFANA
-
-        ZBX --> CHATOPS
-        WAZUH --> CHATOPS
-
-        CHATOPS --> IAC
-    end
-
-    subgraph CSP["AWS / Cloud DR"]
-        direction TB
-
-        S3["S3 Backup"]
-        AWSWEB["Web DR<br/>WG Gateway"]
-        AWSEMR["EMR DR"]
-        AWSDB["MySQL DB DR"]
-
-        AWSWEB --> AWSDB
-        AWSEMR --> AWSDB
-        S3 --> AWSDB
-    end
-
-    NR["MySQL Native Replication"]
-
-    HIS --> WG_MSP
-
-    IAC -->|"DR Automation"| CSP
-
-    DB -->|"Dump Automation"| BACKUP
-    BACKUP -->|"S3 Upload"| S3
-
-    DB --> NR
-    NR -->|"wg-aws-dr"| AWSWEB
-
-    %% Node Style
-    classDef nodeBlue fill:#E8F4FF,stroke:#C9E3F5,stroke-width:1px,color:#145A9C;
-
-    class NET,WEB,EMR,DB nodeBlue;
-    class WG_MSP,ZBX,WAZUH,GRAFANA,CHATOPS,IAC,BACKUP nodeBlue;
-    class S3,AWSWEB,AWSEMR,AWSDB,NR nodeBlue;
-
-    %% Subgraph Style
-    style HIS fill:#F5F5F5,stroke:#E5E5E5,stroke-width:1px
-    style MSP fill:#F5F5F5,stroke:#E5E5E5,stroke-width:1px
-    style CSP fill:#F5F5F5,stroke:#E5E5E5,stroke-width:1px
-
-    %% Connection Style
-    linkStyle default stroke:#C5C5C5,stroke-width:1.2px
-```
-
-<br>
-<br>
-<br>
 <br>
 
 # HIS (On-Premise)
 
+><br>
+>
 >온프레미스는 병원 내부의 **Primary HIS 서비스 및 네트워크 환경**으로, 실제 Cisco 네트워크 장비와 GNS3 기반 내부 HIS 환경을 연동하여 구성한다.
 >
 >외부 공개 Web 영역은 실제 Cisco 네트워크의 **VLAN 20·100과 HSRP 기반 Gateway HA**를 적용하고, 내부 PC·EMR·DB 영역은 GNS3에서 **VLAN 10·30으로 논리적으로 분리**하여 독립적인 내부 네트워크를 구성한다.
 >
 >또한 GNS3 내부 Gateway/Core 이중화와 pfSense CARP 기반 방화벽 이중화를 적용하고, 실제 네트워크에서도 L3 Core 및 Gateway 이중화를 구성하여 **단일 장비 장애에 대한 서비스 연속성(BCP)과 고가용성(HA)** 을 확보한다.
-
-<br>
+>
+><br>
 <br>
 
 ## [HIS] 🛠︎ 기술 스택
@@ -140,7 +59,7 @@ flowchart LR
 
 | 개발 / 검증 도구 | 활용 |
 | :--- | :--- |
-| **Tera Term** | Cisco 장비 Console/SSH 접속 및 CLI 설정 |
+| **Tera Term** | Cisco 장비 CLI 설정 및 관리 |
 | **Wireshark** | 패킷 캡처 및 네트워크 트래픽 분석 |
 
 <br>
@@ -180,7 +99,7 @@ flowchart LR
 | VLAN | Network | GNS3 L3-1 | GNS3 L3-2 | VIP | Purpose |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **VLAN 10** | `192.168.10.0/24` | `192.168.10.2` | `192.168.10.3` | `192.168.10.1` | Internal Client / PC |
-| **VLAN 30** | `192.168.30.0/24` | `192.168.30.2` | `192.168.30.3` | `192.168.30.1` | EMR / EMR / DB |
+| **VLAN 30** | `192.168.30.0/24` | `192.168.30.2` | `192.168.30.3` | `192.168.30.1` | EMR / DB |
 
 <br>
 
@@ -197,9 +116,11 @@ flowchart LR
 
 | Service | Domain Name & URL | IP Address | Network | Access |
 | :--- | :--- | :--- | :--- | :--- |
-| **Web** | `hospital-web.pp.ua` | `192.168.20.10` | Physical VLAN 20 | External |
+| **Web** | `hospital-web.pp.ua` | `192.168.20.11` | Physical VLAN 20 | External |
 | **EMR** | `hospital-web.pp.ua/emr` | `192.168.30.11` | GNS3 VLAN 30 | Internal / Controlled |
 | **DB** | - | `192.168.30.10` | GNS3 VLAN 30 | Web / EMR → DB only |
+
+> Web 접속 주소는 `192.168.20.11`이며, `192.168.20.10`은 GNS3 Cloud Node에서 사용한다.
 
 <br>
 <br>
@@ -228,7 +149,7 @@ flowchart LR
 | 네트워크 경계 보안 | 적용 계층 | 적용 위치 | 적용 대상 / 구간 | 역할 |
 | :--- | :--- | :--- | :--- | :--- |
 | **pfSense** | **L3 ~ L4** | Firewall | 외부 ↔ 내부 네트워크 | 네트워크 접근 제어 및 트래픽 필터링 |
-| **DMZ** |	- | pfSense / 네트워크 구성	| 외부 공개 Web 서비스 | 외부 공개 서비스와 내부 업무망 분리 |
+| **DMZ** | - | Web 앞단의 네트워크 구간 | 외부 공개 Web 서비스(VLAN 20) | 외부 공개 서비스와 내부 업무망 분리 (EMR/DB 구간에 DMZ 없음) |
 | **IDS/IPS** | **L3 ~ L7** | pfSense | 외부 ↔ 내부 트래픽 | 악성 및 비정상 네트워크 트래픽 탐지·차단 |
 | **VLAN (Physical)** | **L2** | Cisco L2/L3 Switch | VLAN 20 / 100 | Web 및 Uplink 네트워크 분리 |
 | **VLAN (GNS3)** | **L2** | GNS3 L2/L3 Network | VLAN 10 / 30 | PC와 EMR/DB 내부망 분리 |
@@ -244,18 +165,12 @@ flowchart LR
 | **HTTPS** | **L7** | Nginx / Cloudflare | Web 서비스 | 클라이언트 ↔ 웹 서버 간 통신 암호화 |
 
 <br>
-
-| 시스템 관리 보안 | 계층 | 적용 위치 | 적용 대상 / 구간 | 역할 |
-| :--- | :--- | :--- | :--- | :--- |
-| **SSH** | **L7** | Cisco 장비 / Ubuntu | Router, L3/L2 Switch, 서버 | Telnet 대신 암호화된 원격 관리 |
-
-<br>
-<br>
-<br>
 <br>
 
 # MSP
 
+><br>
+>
 >MSP는 병원 On-Premise와 분리된 **외부 통합 관제 및 DR 운영 환경**으로, Zabbix·Grafana 기반 인프라 모니터링과 Wazuh 기반 보안 관제를 수행한다.
 >
 >**WireGuard VPN을 통해 On-Premise와 MSP 간 관제·관리 통신을 보호**하고, 장애 발생 시 Slack ChatOps 기반 승인 절차를 통해 DR 전환을 관리한다.
@@ -263,8 +178,8 @@ flowchart LR
 >**Terraform과 Ansible을 활용하여 AWS DR 인프라 구축 및 서버 복구를 자동화**하고, Failover·Failback과 FinOps를 통합 관리한다.
 >
 >MySQL Native Replication 및 암호화 Dump 상태를 관제하여 **RTO/RPO 지표를 수집·관리**하고 DR 운영 상태를 확인한다.
-
-<br>
+>
+><br>
 <br>
 
 ## [MSP] 🛠︎ 기술 스택
@@ -291,7 +206,7 @@ flowchart LR
 | **Container** | Docker | DR 서비스 실행 환경 컨테이너화 |
 | **VPN** | WireGuard | On-Premise ↔ MSP 관제·관리 통신 보호 |
 | **ChatOps** | Slack | 장애 알림 및 Failover·Failback 2인 승인 |
-| **CI/CD** | GitHub Actions | DR 이미지 빌드·보안 검사 및 ECR 배포 자동화 |
+| **CI/CD** | GitHub Actions | DR 이미지 빌드·보안 검사 및 Amazon ECR 이미지 업로드 자동화 |
 
 <br>
 <br>
@@ -321,7 +236,7 @@ flowchart LR
 | 프로토콜 | 적용 구간 | 적용 목적 |
 | :--- | :--- | :--- |
 | **SNMP** | 네트워크 장비 ↔ Zabbix | 네트워크 장비의 상태 및 성능 데이터 수집·모니터링 |
-| **WireGuard** | On-Premise ↔ MSP | VPN 터널을 통한 온프레미스와 MSP 간 관제·관리 통신 암호화 간 보안 통신 |
+| **WireGuard** | On-Premise ↔ MSP | VPN 터널을 통한 관제·관리 트래픽 암호화 |
 
 <br>
 <br>
@@ -378,26 +293,26 @@ flowchart LR
 
 | 항목 | 목표 / 기준 | 현재 상태 | 설명 |
 | :--- | :--- | :--- | :--- |
-| **RTO** | 30분 이내 | Live E2E 측정 | 장애 감지부터 AWS 서비스 복구까지 실제 Timestamp 기반 측정 |
-| **RPO (NR)** | 데이터 손실 최소화 | Live NR 검증 | 정상 비동기 복제 상태에서 Binlog 기반 실시간 반영 |
-| **RPO (Dump)** | 최대 30분 | 30분 주기 백업 | 마지막 정상 Dump 이후 변경 데이터는 손실 가능 |
-| **RTO/RPO 증거** | 실제 로그 기반 | Evidence Collector 구현 | Zabbix·Slack·IaC·DB 이벤트의 Run ID / Incident ID 기준으로 산정 |
+| **RTO** | 최종 목표값 별도 확인 | `NOT_MEASURED` (전체 E2E) | 자동화 단계별 실행 시간과 전체 서비스 복구 시간을 구분하여 기록 |
+| **RPO (NR)** | 데이터 손실 최소화 | 복제 상태 검증 | MySQL 비동기 복제 상태를 관찰하며 전체 E2E RPO 실측과 구분 |
+| **RPO (Dump)** | 백업 주기 30분 | 주기 백업 구성 | 실제 복구 시점은 마지막 정상 백업·전송 완료 시각에 따라 달라질 수 있음 |
+| **RTO/RPO 증거** | 이벤트 로그·증적 기반 | Evidence Collector 구성 | Zabbix·Slack·IaC·DB 이벤트의 Run ID / Incident ID 기록. 전체 E2E 실측은 별도 검증 필요 |
 | **FinOps** | 비용 최적화 | Cold/Warm 혼합 | 평상시 AWS DR 서버를 중지하고 필요 시 기동 |
 
-<br>
-<br>
 <br>
 <br>
 
 # CSP (Cloud / AWS)
 
+><br>
+>
 >AWS DR은 **온프레미스 장애 발생 시 핵심 서비스를 신속하게 복구하기 위한 재해복구 환경**으로, Web·EMR·DB 서버를 구성한다.
 >
 >**Terraform·Ansible 기반 IaC 자동화**를 통해 장애 발생 시 DR 인프라를 신속하게 구성하고, **Cloudflare DNS 전환과 Failover/Failback 절차를 연계**하여 서비스 연속성을 확보한다.
 >
 >**VPC, IAM, Security Group**으로 네트워크와 접근 권한을 분리하고, 평상시 불필요한 EC2·NAT 자원을 비활성화하여 **DR 운영 비용을 최소화**한다.
-
-<br>
+>
+><br>
 <br>
 
 ## [CSP] 🛠︎ 서비스 / 리소스
@@ -478,3 +393,39 @@ flowchart LR
 | **실시간 복제** | MySQL Binlog CDC (Native Replication) | 메인 DR 복제 | On-Prem DB 변경사항을 AWS DB DR에 실시간 반영 |
 | **시점 복구** | 암호화 Dump / S3 | 보조 복구 | 복제 데이터 오염 또는 장애 시 정상 시점의 백업으로 복구 |
 | **하이브리드** | CDC(NR) + Dump | 최신성 + 안정성 | 실시간 복제와 시점 백업을 병행하여 DR 복구 방식 이원화 |
+
+<br>
+<br>
+
+## [CSP] 🚀︎ CI/CD 파이프라인
+
+**목적:** Web·EMR의 컨테이너 이미지를 일관된 방식으로 빌드·검사하고, AWS DR 환경에서 재사용 가능한 검증 이미지를 Amazon ECR에 보관한다.
+
+**파이프라인 흐름**
+
+```text
+GitHub 소스 코드
+    → GitHub Actions 실행
+    → Docker 이미지 빌드
+    → Trivy 취약점 검사
+    → Health / Security Gate
+    → GitHub OIDC 기반 AWS 권한 획득
+    → Amazon ECR에 SHA 태그 이미지 Push
+    → DR 배포 절차에서 검증 이미지 사용
+```
+
+| 구분 | 사용 기술 | 적용 내용 |
+| :--- | :--- | :--- |
+| **Source / Workflow** | GitHub / GitHub Actions | 소스 변경에 따른 워크플로 실행 및 빌드 과정 자동화 |
+| **Build** | Docker | Web·EMR 애플리케이션 이미지 생성 |
+| **Security Scan** | Trivy | 컨테이너 이미지의 알려진 취약점 검사 |
+| **Quality Gate** | Health / Security Gate | 배포 전 점검 조건 평가 |
+| **AWS 인증** | GitHub OIDC / IAM | 장기 AWS Access Key 대신 임시 권한 사용 |
+| **Registry** | Amazon ECR | SHA 기반 태그로 이미지 식별 및 보관 |
+| **Service Configuration** | Terraform / Ansible | AWS 리소스 및 DR 서버 설정·복구 자동화 (CI/CD와 역할 구분) |
+
+> **구현 범위:** GitHub Actions의 빌드·검사·ECR Push 자동화와, 실제 EC2에서 컨테이너를 적용하는 배포·복구 절차는 구분한다. EC2 자동 재배포까지 수행하는지는 해당 워크플로와 실행 로그를 기준으로 확인한다.
+
+<br>
+<br>
+
