@@ -14,7 +14,7 @@
 <br>
 
 # [On-Premise]
->## [HIS] 병원 서버 및 GNS3
+>## [HIS] 병원 인프라 및 내부망
 >| 단계 | 항목 | 목표 | 수행 방법 | 진행률 |
 >| :--- | :--- | :--- | :--- | :--- |
 >| **[H1]** | **병원 서버 구축** | 서비스 인프라 마련 | Ubuntu 22.04 기반 Web, Doc, DB 서버 구축 및 패키지 구성 | **100%** <br> &nbsp; |
@@ -50,7 +50,7 @@
 
 # [Cloud]
 
->## [MSP] 외부 통합 관제 서버
+>## [MSP] 중앙 관제
 >| 단계 | 항목 | 목표 | 수행 방법 | 진행률 |
 >| :--- | :--- | :--- | :--- | :--- |
 >| **[M1]** | **MSP 통합 관제 서버** | 중앙 관제 및 DR 제어 거점 구축 | pfSense 격리 환경에서 Ubuntu 22.04 기반 MSP 서버 및 관리 서비스 구성 | **100%** <br> &nbsp; |
@@ -67,7 +67,7 @@
 >| **[M12]** | **DR 실행 안정성 / 상태 관리** | 페일오버/페일백 안정성 확보 | Persistent DR State, 실행 Lock, Timeout·Stale 복구, DNS Snapshot/Rollback, Partial Failure 처리 | **100%** <br> &nbsp; |
 >| **[M13]** | **네트워크 DR Health 게이트** | 안전한 Failback | SNMP/Zabbix 기반 Network Health를 검증하고 Web/EMR/DB/Network 300초 정상 시 Failback 요청 생성 | **100%** <br> &nbsp; |
 
->## [CSP] AWS DR 서버
+>## [CSP] AWS DR
 >| 단계 | 항목 | 목표 | 수행 방법 | 진행률 |
 >| :--- | :--- | :--- | :--- | :--- |
 >| **[A1]** | **AWS VPC 인프라** | DR 클라우드 거점 구축 | Terraform 기반 VPC, Subnet, IGW, Route Table 구성 | **100%** <br> &nbsp; |
