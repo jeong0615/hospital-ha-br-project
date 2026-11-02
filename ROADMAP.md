@@ -24,17 +24,17 @@
 >| **[H5]** | **동적 라우팅** | GNS3 내부 경로 구성 | OSPF 프로세스 구성 및 동적 라우팅 경로 검증 | **100%** <br> &nbsp; |
 >| **[H6]** | **GNS3 네트워크 HA** | 내부 Gateway/Core 가용성 확보 | VLAN 10·30 VIP 기반 Gateway 이중화 및 네트워크 장애 전환 검증 | **100%** <br> &nbsp; |
 >| **[H7]** | **이중화 방화벽** | 방화벽 가용성 확보 | pfSense VIP 구성 및 CARP 프로토콜 적용 | **100%** <br> &nbsp; |
->| **[H8]**	| **pfSense WAN/LAN/DMZ 구성** | Web 앞단 DMZ 구성 및 pfSense 방화벽 정책 적용. EMR/DB는 별도 내부망으로 운영 | **100%** <br> &nbsp; |
+>| **[H8]** | **경계 보안 및 DMZ 구성** | Web 공개 영역과 내부 업무망 보호 | Web 앞단 DMZ 구성 및 pfSense 방화벽 정책 적용, EMR/DB는 별도 내부망으로 운영 | **100%** <br> &nbsp; |
 >| **[H9]** | **네트워크 접근통제** | 불필요한 통신 차단 | ACL 및 Firewall 정책으로 허용된 서비스·포트만 통신 허용 | **100%** <br> &nbsp; |
 >| **[H10]** | **도메인 주소** | 외부 Web 서비스 연결 | Cloudflare DNS 및 SSL/TLS 적용 | **100%** <br> &nbsp; |
 >| **[H11]** | **웹서버 보안** | Web 서비스 보호 | Cloudflare WAF 및 Application WAF 이중 적용 | **100%** <br> &nbsp; |
->| **[H12]** | **/emr 외부 접근 제한** | EMR/DB 서버 외부 직접 접근 차단 및 허용된 서비스 통신만 접근 가능하도록 제한 | **100%** <br> &nbsp; |
+>| **[H12]** | **EMR/DB 접근 통제** | 의료 데이터 및 내부 서비스 보호 | EMR/DB의 외부 직접 접근을 차단하고 허용된 서비스 통신만 접근 가능하도록 제한 | **100%** <br> &nbsp; |
 >| **[H13]** | **보안 기능 확장** | 침입 탐지·방지 | pfSense IDS/IPS 적용 및 이벤트 탐지 검증 | **100%** <br> &nbsp; |
 
 >## [Physical] 실제 장비
 >| 단계 | 항목 | 목표 | 수행 방법 | 진행률 |
 >| :--- | :--- | :--- | :--- | :--- |
->| **[P1]** | **Hostname, telnet, Enable Secret, 관리 IP** | Hostname, Enable Secret, 관리 IP, 인터페이스 등 장비 기본 설정 | **100%** <br> &nbsp; |
+>| **[P1]** | **L2/L3 장비 기본 설정** | 물리 네트워크 장비 운영 환경 구축 | Hostname, Enable Secret, 관리 IP 및 인터페이스 기본 설정 | **100%** <br> &nbsp; |
 >| **[P2]** | **L3 코어 및 VLAN 구성** | Web 및 Uplink 네트워크 구성 | L3-SW1/SW2 코어 구성, VLAN 20(Web) 및 VLAN 100(Uplink) SVI 구성 | **100%** <br> &nbsp; |
 >| **[P3]** | **Trunk / Access 구성** | 실제 네트워크 연결 | L2 ↔ L3 Uplink 및 Web Server·GNS3 Host 연결 포트 구성 | **100%** <br> &nbsp; |
 >| **[P4]** | **HSRP 구성** | Web Gateway 이중화 | L3-SW1/SW2에서 VLAN 20 HSRP Virtual IP 구성 및 장애 전환 확인 | **100%** <br> &nbsp; |
@@ -62,7 +62,7 @@
 >| **[M7]** | **Slack 장애 알림** | 장애 상황 실시간 전달 | 실제 Zabbix Problem/Recovery Event → ChatOps → Slack 자동 알림 연계 | **100%** <br> &nbsp; |
 >| **[M8]** | **DR 2인 승인 ChatOps** | 관리자 이중 승인 통제 | Slack Failover·Failback·Emergency 3-App 기반 2인 승인, Global Lock, Audit, Health/Security Gate 및 ngrok HTTPS Endpoint 연동 | **100%** <br> &nbsp; |
 >| **[M9]** | **암호화 DB 백업 수집** | 별도 복구 데이터 확보 | On-Prem에서 생성한 `.sql.gz.enc` 및 `.master_status`를 MSP로 전송·관리 | **100%** <br> &nbsp; |
->| **[M10]** | **실제 Live E2E RTO/RPO 기록·증적화** |	RTO/RPO 측정 체계 및 Evidence Collector 구성. 전체 E2E 실측은 별도 검증 항목으로 관리 | **100%** <br> &nbsp; |
+>| **[M10]** | **RTO/RPO 관제 및 증적 수집** | DR 복구 성능 측정 체계 구축 | Zabbix·Grafana 및 Evidence Collector 기반 복구 지표 수집·증적 체계 구성, 전체 E2E RTO/RPO 실측은 NOT_MEASURED로 구분 | **100%** <br> &nbsp; |
 >| **[M11]** | **Cloudflare Secret 관리** | DNS 자동화 인증정보 보호 | Cloudflare API Token을 AWS SSM SecureString에서 런타임 조회하도록 통일 | **100%** <br> &nbsp; |
 >| **[M12]** | **DR 실행 안정성 / 상태 관리** | 페일오버/페일백 안정성 확보 | Persistent DR State, 실행 Lock, Timeout·Stale 복구, DNS Snapshot/Rollback, Partial Failure 처리 | **100%** <br> &nbsp; |
 >| **[M13]** | **네트워크 DR Health 게이트** | 안전한 Failback | SNMP/Zabbix 기반 Network Health를 검증하고 Web/EMR/DB/Network 300초 정상 시 Failback 요청 생성 | **100%** <br> &nbsp; |
@@ -99,14 +99,14 @@
 >| **[T1]** | **네트워크 기본 통신** | GNS3 VLAN 10/30 내부 통신, Physical VLAN 20 Web 통신, GNS3 ↔ 실제 네트워크 및 외부 서비스 접근 경로 확인 | **[✓]** <br> &nbsp; |
 >| **[T2]** | **On-Premise HA 검증** | GNS3 Gateway HA·OSPF 경로 변경, Physical HSRP·RSTP·RIPv2 장애 전환, pfSense CARP Firewall Failover 확인 | **[✓]** <br> &nbsp; |
 >| **[T3]** | **네트워크 보안 검증** | VLAN/ACL 접근 제어, pfSense Firewall, IDS/IPS 허용·차단 정책 검증 | **[✓]** <br> &nbsp; |
->| **[T4]** | **Web 보안 검증** | Cloudflare/Application WAF의 XSS·SQLi 차단, HTTPS/SSL 및 접근 정책 확인 | **[✓]** <br> &nbsp; |
+>| **[T4]** | **Web 보안 검증** | Express WAF의 XSS·SQLi 차단(HTTP 403), Rate Limit 제한 및 Cloudflare 보안 설정 확인 | **[✓]** <br> &nbsp; |
 >| **[T5]** | **Hybrid 네트워크 연동** | On-Prem ↔ MSP WireGuard 통신, MSP ↔ AWS 관리 경로 및 DB 복제 통신 경로 확인 | **[✓]** <br> &nbsp; |
 >| **[T6]** | **DB 백업 / 복구 검증** | On-Prem 암호화 Dump → MSP → S3 전송 및 Dump 기반 DB 복구·정합성 확인 | **[✓]** <br> &nbsp; |
 >| **[T7]** | **DB 실시간 NR 검증** | Position 기반 On-Prem DB → AWS DR DB 실시간 복제 및 데이터 정합성 확인 | **[✓]** <br> &nbsp; |
->| **[T8]** | **Grafana RTO/RPO 지표 시각화 및 장애 식별** |	Grafana 대시보드 6개 및 패널 쿼리 60/60 검증, 장애·복구 지표 수집 경로 확인 | **[✓]** <br> &nbsp; |
+>| **[T8]** | **통합 관제 검증** | Grafana 대시보드 6개 및 패널 쿼리 60/60 PASS, 장애·복구 지표 수집 경로 확인 | **[✓]** <br> &nbsp; |
 >| **[T9]** | **통합 보안 관제 검증** | Wazuh Agent → MSP SIEM 이벤트 수집, 보안 이벤트 탐지 및 Slack 알림 확인 | **[✓]** <br> &nbsp; |
->| **[T10]** | **Cloudflare/Application WAF의 XSS·SQLi 차단** |	Express WAF의 XSS·SQLi 차단(HTTP 403) 및 Rate Limit 검증, Cloudflare 보안 설정 확인 | **[✓]** <br> &nbsp; |
+>| **[T10]** | **ChatOps / DR 승인 검증** | 장애 이벤트 → Slack 승인 요청 → 서로 다른 관리자 2인 승인, 중복 실행 방지 및 DR 자동화 실행 연계 검증 | **[✓]** <br> &nbsp; |
 >| **[T11]** | **Failover / DR 서비스 검증** | 장애 감지 → 승인 → Terraform/Ansible → AWS DR 활성화 → DNS 전환 → Web/EMR/DB Health Check | **[✓]** <br> &nbsp; |
->| **[T12]** | **Failback / RTO·RPO 검증** |	Failback 및 데이터 정합성 검증 | **[✓]** <br> &nbsp; |
+>| **[T12]** | **Failback 및 데이터 정합성 검증** | AWS DR 데이터의 On-Prem 복원, 서비스 정상화, DNS 원복 및 데이터 정합성 확인 | **[✓]** <br> &nbsp; |
 >| **[T13]** | **End-to-End DR 검증** | On-Prem 장애 → AWS Failover → DR 데이터 생성 → Failback → On-Prem 데이터 복귀 전체 시나리오 검증 | **[✓]** <br> &nbsp; |
->| **[T14]** | **실제 스트립트 경로 및 설정 명령어 GitHub 백업** |	실제 스크립트, 장비 설정 및 운영 문서 GitHub 백업 | **[✓]** <br> &nbsp; |
+>| **[T14]** | **운영 자료 백업 및 문서화** | 실제 운영 스크립트, 네트워크 장비 설정 및 운영 문서를 GitHub에 백업·관리 | **[✓]** <br> &nbsp; |
