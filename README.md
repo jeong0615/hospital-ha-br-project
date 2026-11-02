@@ -4,8 +4,6 @@
 
 ## ✦ 프로젝트 개요
 
-><br>
->
 >의료 환경의 IT 인프라는 환자 진료와 핵심 업무의 연속성에 직접적인 영향을 미치므로, **장애 발생 시 서비스 중단을 최소화하고 신속한 복구 체계를 확보하는 것이 중요하다.**
 >
 >본 프로젝트는 병원 인프라의 **고가용성(HA)과 재해복구(DR)를 통합하여 서비스 연속성을 확보**하는 것을 목표로 한다. <br>
@@ -14,8 +12,7 @@
 >온프레미스 환경에서는 **네트워크·게이트웨이·방화벽 이중화를 통한 HA**를 구성하고, MSP에서는 **인프라·보안 통합 관제와 DR 운영을 중앙 관리**한다.
 >
 >온프레미스에서 복구가 어려운 장애 발생 시에는 MSP 서버의 **Terraform과 Ansible 기반 IaC 자동화를 통해 AWS DR 환경으로 Failover**하고, 서비스 정상화 이후 Failback을 수행하는 **Hybrid Cloud 기반 HA/DR 시스템 구축**이 본 프로젝트의 핵심이다.
->
-><br>
+
 <br>
 
 ## 시스템 구성 한눈에 보기
@@ -30,15 +27,12 @@
 
 # HIS (On-Premise)
 
-><br>
->
 >온프레미스는 병원 내부의 **Primary HIS 서비스 및 네트워크 환경**으로, 실제 Cisco 네트워크 장비와 GNS3 기반 내부 HIS 환경을 연동하여 구성한다.
 >
 >외부 공개 Web 영역은 실제 Cisco 네트워크의 **VLAN 20·100과 HSRP 기반 Gateway HA**를 적용하고, 내부 PC·EMR·DB 영역은 GNS3에서 **VLAN 10·30으로 논리적으로 분리**하여 독립적인 내부 네트워크를 구성한다.
 >
 >또한 GNS3 내부 Gateway/Core 이중화와 pfSense CARP 기반 방화벽 이중화를 적용하고, 실제 네트워크에서도 L3 Core 및 Gateway 이중화를 구성하여 **단일 장비 장애에 대한 서비스 연속성(BCP)과 고가용성(HA)** 을 확보한다.
->
-><br>
+
 <br>
 
 ## [HIS] 🛠︎ 기술 스택
@@ -105,7 +99,7 @@
 
 | GNS3 Node | VLAN | IP Address | Gateway | Role |
 | :--- | :--- | :--- | :--- | :--- |
-| **PC** | VLAN 10 | `DHCP (192.168.10.0/24)` | `192.168.10.1` | 내부 사용자 / EMR 접근 Client |
+| **PC** | VLAN 10 | `DHCP (192.168.10.0/24)` | `192.168.10.1` | 업무용 PC / EMR 접근 Client |
 | **DB** | VLAN 30 | `192.168.30.10/24` | `192.168.30.1` | MySQL Database |
 | **EMR** | VLAN 30 | `192.168.30.11/24` | `192.168.30.1` | EMR / 문서 서비스 |
 
@@ -119,8 +113,6 @@
 | **Web** | `hospital-web.pp.ua` | `192.168.20.11` | Physical VLAN 20 | External |
 | **EMR** | `hospital-web.pp.ua/emr` | `192.168.30.11` | GNS3 VLAN 30 | Internal / Controlled |
 | **DB** | - | `192.168.30.10` | GNS3 VLAN 30 | Web / EMR → DB only |
-
-> Web 접속 주소는 `192.168.20.11`이며, `192.168.20.10`은 GNS3 Cloud Node에서 사용한다.
 
 <br>
 <br>
@@ -169,8 +161,6 @@
 
 # MSP
 
-><br>
->
 >MSP는 병원 On-Premise와 분리된 **외부 통합 관제 및 DR 운영 환경**으로, Zabbix·Grafana 기반 인프라 모니터링과 Wazuh 기반 보안 관제를 수행한다.
 >
 >**WireGuard VPN을 통해 On-Premise와 MSP 간 관제·관리 통신을 보호**하고, 장애 발생 시 Slack ChatOps 기반 승인 절차를 통해 DR 전환을 관리한다.
@@ -178,8 +168,7 @@
 >**Terraform과 Ansible을 활용하여 AWS DR 인프라 구축 및 서버 복구를 자동화**하고, Failover·Failback과 FinOps를 통합 관리한다.
 >
 >MySQL Native Replication 및 암호화 Dump 상태를 관제하여 **RTO/RPO 지표를 수집·관리**하고 DR 운영 상태를 확인한다.
->
-><br>
+
 <br>
 
 ## [MSP] 🛠︎ 기술 스택
@@ -302,17 +291,14 @@
 <br>
 <br>
 
-# CSP (Cloud / AWS)
+# CSP (AWS DR)
 
-><br>
->
 >AWS DR은 **온프레미스 장애 발생 시 핵심 서비스를 신속하게 복구하기 위한 재해복구 환경**으로, Web·EMR·DB 서버를 구성한다.
 >
 >**Terraform·Ansible 기반 IaC 자동화**를 통해 장애 발생 시 DR 인프라를 신속하게 구성하고, **Cloudflare DNS 전환과 Failover/Failback 절차를 연계**하여 서비스 연속성을 확보한다.
 >
 >**VPC, IAM, Security Group**으로 네트워크와 접근 권한을 분리하고, 평상시 불필요한 EC2·NAT 자원을 비활성화하여 **DR 운영 비용을 최소화**한다.
->
-><br>
+
 <br>
 
 ## [CSP] 🛠︎ 서비스 / 리소스
@@ -424,8 +410,4 @@ GitHub 소스 코드
 | **Registry** | Amazon ECR | SHA 기반 태그로 이미지 식별 및 보관 |
 | **Service Configuration** | Terraform / Ansible | AWS 리소스 및 DR 서버 설정·복구 자동화 (CI/CD와 역할 구분) |
 
-> **구현 범위:** GitHub Actions의 빌드·검사·ECR Push 자동화와, 실제 EC2에서 컨테이너를 적용하는 배포·복구 절차는 구분한다. EC2 자동 재배포까지 수행하는지는 해당 워크플로와 실행 로그를 기준으로 확인한다.
-
-<br>
-<br>
-
+**구현 범위:** GitHub Actions의 빌드·검사·ECR Push 자동화와, 실제 EC2에서 컨테이너를 적용하는 배포·복구 절차는 구분한다. EC2 자동 재배포까지 수행하는지는 해당 워크플로와 실행 로그를 기준으로 확인한다.
