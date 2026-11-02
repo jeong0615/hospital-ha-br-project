@@ -270,10 +270,29 @@
 
 | 구분 | 역할 |
 | :--- | :--- |
-| **ChatOps Alert** | 일반 인프라·보안 이벤트 알림 |
-| **ChatOps Failover** | 일반 DR Failover 요청 및 관리자 2인 승인 |
-| **ChatOps Failback** | On-Prem 정상화 후 Failback 요청 및 관리자 2인 승인 |
-| **ChatOps Emergency** | 자동 감지/일반 요청 경로 사용이 어려운 경우 긴급 DR 요청 |
+| **ChatOps Alert** | 일반 인프라·보안 이벤트 탐지 및 Slack 알림 |
+| **ChatOps Failover** | 운영 장애 조건 충족 시 AWS DR 전환 요청 및 관리자 2인 승인 |
+| **ChatOps Failback** | On-Prem 복구 조건 충족 시 서비스 원복 요청 및 관리자 2인 승인 |
+| **ChatOps Emergency** | 관리자 수동 요청을 통한 긴급 Failover/Failback 및 2인 승인 |
+
+<br>
+
+| 구분 | 작동 조건 |
+| :--- | :--- |
+| **Normal Failover** | DR 비활성 상태에서 Web·EMR·DB 모두 FAIL이 300초 지속되고, 관제 경로 정상 및 유지보수·테스트 모드 제외 |
+| **Normal Failback** | DR 활성 상태에서 Web·EMR·DB·Network 모두 정상 상태가 300초 지속 |
+| **Emergency DR** | 관리자가 지정된 확인 절차를 거쳐 긴급 전환 요청 |
+| **공통 승인 정책** | 서로 다른 관리자 2인의 승인 완료 후 DR 실행 |
+
+<br>
+
+| 구분 | 처리 정책 |
+| :--- | :--- |
+| **요청 중복 방지** | 동일 DR 요청 중복 생성 및 동시 실행 방지 |
+| **승인 요청 만료** | 설정된 승인 20분이 경과 시 자동 만료 (1명이 승인 시 60분 연장) |
+| **만료 후 재요청** | 장애·복구 조건이 지속되는 경우 평가 주기에 따라 요청 재생성 |
+| **실행 상태 관리** | Global Lock 및 DR State 기반 중복 실행 방지 |
+| **감사 기록** | 승인·실행·실패 및 상태 변경 이력 기록 |
 
 <br>
 <br>
