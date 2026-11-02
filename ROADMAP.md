@@ -4,9 +4,9 @@
 
 | 구분 | 담당 영역 | 주요 역할 |
 | :--- | :--- | :--- |
-| **정승철** | MSP / IaC / Monitoring / AWS DR | 중앙 통합 관제, AWS DR 환경 구축, Slack 2인 승인, DB 하이브리드 복제 |
-| **이재훈** | Web / DNS / Physical / Security / HSRP | Web 서버 구축, 실제 장비 구성 및 활성화, 코어·게이트웨이 이중화 |
-| **윤종민** | EMR / DB / GNS3 / Firewall / CARP | EMR·DB 서버 구축, GNS3 내부망 토폴로지 설계, 방화벽·ESW 스위치 이중화 |
+| **정승철** | MSP / IaC / Monitoring / AWS DR | 중앙 통합 관제, AWS DR 환경 구축, Slack 2인 승인, 페일오버/페일백, DB 하이브리드 복제 |
+| **이재훈** | Web / DNS / Physical / Security / HSRP | Web 서버 구축, 실제 장비 구성 및 활성화, 코어·게이트웨이 이중화, 응용 계층 보안 설정 |
+| **윤종민** | EMR / DB / GNS3 / Firewall / CARP | EMR·DB 서버 구축, GNS3 내부망 토폴로지 설계, 방화벽·ESW 스위치 이중화, IDS/IPS 설정 |
 
 <br>
 <br>
