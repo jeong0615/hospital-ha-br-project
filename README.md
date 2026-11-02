@@ -19,7 +19,7 @@
 
 | 영역 | 핵심 구성 | 역할 |
 | :--- | :--- | :--- |
-| **HIS (온프레미스)** | Cisco / GNS3 / pfSense / Web·EMR·DB | 병원 서비스 운영, 네트워크 분리, HA 및 접근 제어 |
+| **HIS (On-Premise)** | Cisco / GNS3 / pfSense / Web·EMR·DB | 병원 서비스 운영, 네트워크 분리, HA 및 접근 제어 |
 | **MSP (중앙 관제)** | Zabbix / Wazuh / Grafana / Slack / Terraform·Ansible | 통합 관제, 2인 승인, DR 실행 제어 |
 | **CSP (AWS DR)** | EC2 / VPC / S3 / MySQL NR / ECR / GitHub Actions | 대체 서비스 운영, DB 복구, 이미지 빌드·관리 |
 
