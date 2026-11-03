@@ -304,7 +304,6 @@
 | **RPO (NR)** | 데이터 손실 최소화 | 복제 상태 검증 | MySQL 비동기 복제 상태를 관찰하며 전체 E2E RPO 실측과 구분 |
 | **RPO (Dump)** | 백업 주기 30분 | 주기 백업 구성 | 실제 복구 시점은 마지막 정상 백업·전송 완료 시각에 따라 달라질 수 있음 |
 | **RTO/RPO 증거** | 이벤트 로그·증적 기반 | Evidence Collector 구성 | Zabbix·Slack·IaC·DB 이벤트의 Run ID / Incident ID 기록. 전체 E2E 실측은 별도 검증 필요 |
-| **FinOps** | 비용 최적화 | Cold/Warm 혼합 | 평상시 AWS DR 서버를 중지하고 필요 시 기동 |
 
 <br>
 <br>
