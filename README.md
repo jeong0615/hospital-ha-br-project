@@ -265,7 +265,7 @@
 <br>
 <br>
 
-## [MSP] 🕫 ChatOps DR 승인 정책
+## [MSP] 📣︎ ChatOps DR 승인 정책
 
 | 구분 | 역할 |
 | :--- | :--- |
