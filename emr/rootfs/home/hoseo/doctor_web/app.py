@@ -1,5 +1,5 @@
-from flask import Flask, render_template, jsonify
 import os
+from flask import Flask, render_template, jsonify
 import mysql.connector
 from mysql.connector import Error
 from datetime import datetime, date

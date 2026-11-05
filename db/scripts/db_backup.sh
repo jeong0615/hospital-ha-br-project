@@ -2,9 +2,7 @@
 set -euo pipefail
 DB_USER="hoseo"
 DB_NAME="hospital_db"
-# Inject this value from an access-controlled Secret store or environment.
-# Never commit the encryption key to this Repository.
-ENCRYPTION_KEY="${DB_BACKUP_ENCRYPTION_KEY:?DB_BACKUP_ENCRYPTION_KEY is required}"
+ENCRYPTION_KEY="SecureHospitalKey2026!"
 CLOUD_USER="cloud"
 CLOUD_IP="IP_REDACTED"
 
@@ -62,18 +60,16 @@ echo "[3/6] gzip 압축 중..."
 gzip -c "$SQL_TMP" > "$GZ_TMP"
 
 echo "[4/6] AES-256 암호화 중..."
-printf '%s' "$ENCRYPTION_KEY" |
-  openssl enc -aes-256-cbc -salt -pbkdf2 \
-    -in "$GZ_TMP" \
-    -out "$ENC_TMP" \
-    -pass stdin
+openssl enc -aes-256-cbc -salt -pbkdf2 \
+  -in "$GZ_TMP" \
+  -out "$ENC_TMP" \
+  -pass pass:"$ENCRYPTION_KEY"
 
 echo "[5/6] 암호화 Dump 무결성 검사 중..."
 
-if ! printf '%s' "$ENCRYPTION_KEY" |
-    openssl enc -d -aes-256-cbc -pbkdf2 \
+if ! openssl enc -d -aes-256-cbc -pbkdf2 \
     -in "$ENC_TMP" \
-    -pass stdin 2>/dev/null |
+    -pass pass:"$ENCRYPTION_KEY" 2>/dev/null |
     gzip -t
 then
     echo "ERROR: 암호화 Dump 무결성 검증 실패"

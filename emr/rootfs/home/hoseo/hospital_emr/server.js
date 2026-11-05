@@ -13,8 +13,9 @@ app.use('/api/patients', require('./backend/patients'));
 app.use('/api/medical-records', require('./backend/medical_records'));
 app.use('/api/logs', require('./backend/logs'));
 
-
-// Web 예약 목록에 필요한 항목만 조회합니다. 비밀번호·전화번호·자유 입력 내용은 반환하지 않습니다.
+// Web appointments are stored separately from completed EMR visits. Expose
+// only the fields already used by the Web reservation list; never return the
+// reservation password, phone number, or free-text content to this view.
 app.get('/api/reservations/recent', async (_req, res) => {
     try {
         const [reservations] = await db.query(
@@ -31,10 +32,22 @@ app.get('/api/reservations/recent', async (_req, res) => {
     }
 });
 
+// Dump DR's dedicated health path performs no patient query and returns no
+// diagnostic details. Public access is separately authenticated at DR Web's
+// Nginx origin proxy; the EMR app port itself remains loopback-published.
+app.get('/__hospital_dr/health', async (_req, res) => {
+    try {
+        await db.query('SELECT 1');
+        res.set('Cache-Control', 'no-store, private').status(204).end();
+    } catch (_) {
+        res.set('Cache-Control', 'no-store, private').status(503).end();
+    }
+});
+
 // 정적 파일 서빙 (프론트엔드 HTML, CSS, JS)
 app.use(express.static('.'));
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, 'IP_REDACTED', () => {
     console.log(`EMR 서버가 http://IP_REDACTED:${PORT} 에서 실행 중입니다.`);

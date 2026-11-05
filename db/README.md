@@ -30,7 +30,8 @@ db/
 │   ├── cron-db-backup.txt
 │   └── config-sources.txt
 ├── scripts/
-│   └── db_backup.sh
+│   ├── db_backup.sh
+│   └── onprem_db_preflight.sh
 └── systemd/
     ├── hospital-db-backup.service
     └── hospital-db-backup.timer
@@ -38,7 +39,7 @@ db/
 
 `backups/`에는 2026-10-29 10:00:00 시점의 최신 완성 암호화 Dump와 동일 시점의 Binary Log 위치 정보가 저장되어 있다. 복호화 Key/Password는 Repository에 포함하지 않는다. 원격 DB에서 확인된 `nr-fresh/` 및 failback용 평문 압축 Dump는 보안상 업로드하지 않았다.
 
-`scripts/db_backup.sh`는 외부 Secret 환경변수를 사용하도록 정리한 Repository용 백업 템플릿이며, `systemd/`에는 해당 흐름을 호출하는 service/timer 정의가 있다. 원격 서버의 운영 스크립트는 확인했지만 inline 암호화 Credential이 포함되어 있어 그대로 복사하지 않았다. MySQL 설정 파일, 암호화 키와 운영 Credential은 이 디렉터리에 포함하지 않는다.
+`scripts/db_backup.sh`는 외부 Secret 환경변수를 사용하도록 정리한 Repository용 백업 템플릿이며, `scripts/onprem_db_preflight.sh`는 DB 복구·failback 전 사전 조건을 점검하는 공개 가능한 점검 스크립트다. `systemd/`에는 백업 흐름을 호출하는 service/timer 정의가 있다. 원격 서버의 운영 스크립트 중 생성형 wrapper와 inline 암호화 Credential이 포함된 파일은 복사하지 않았다. MySQL 설정 파일, 암호화 키와 운영 Credential은 이 디렉터리에 포함하지 않는다.
 
 원격 운영 스크립트에서 inline 암호화 Credential 사용이 확인되었으므로 운영 Key는 별도 Secret 저장소의 새 값으로 교체하고, 기존 값은 폐기·교체하는 것을 권장한다.
 

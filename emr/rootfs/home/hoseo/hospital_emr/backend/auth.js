@@ -20,7 +20,7 @@ console.log("로그인 요청 접수됨!");
     // ...
     // ==========================================
     // [테스트용 하드코딩 계정 확인]
-    // 환경변수 기반 테스트 계정일 때 임시 계정으로 로그인 처리
+    // 비밀번호가 'pass'일 때 임시 계정으로 로그인 처리
     const testUsers = {
         'admin': { user_id: 999, login_id: 'admin', role: 'ADMIN', name: '임시관리자' },
         'pa':    { user_id: 998, login_id: 'pa', role: 'PA', name: '임시간호사' },
