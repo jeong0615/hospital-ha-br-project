@@ -24,6 +24,9 @@
 | **CSP (AWS DR)** | EC2 / VPC / S3 / MySQL NR / ECR / GitHub Actions | 대체 서비스 운영, DB 복구, 이미지 빌드·관리 |
 
 <br>
+<br>
+<br>
+<br>
 
 # HIS (On-Premise)
 
@@ -155,6 +158,8 @@
 | **SSL/TLS** | **L5 ~ L6** | Cloudflare | 외부 Web 서비스 | HTTPS 암호화 및 클라이언트와의 통신 보호 |
 | **HTTPS** | **L7** | Nginx / Cloudflare | Web 서비스 | 클라이언트 ↔ 웹 서버 간 통신 암호화 |
 
+<br>
+<br>
 <br>
 <br>
 
@@ -305,6 +310,8 @@
 | **RPO (Dump)** | 백업 주기 30분 | 주기 백업 구성 | 실제 복구 시점은 마지막 정상 백업·전송 완료 시각에 따라 달라질 수 있음 |
 | **RTO/RPO 증거** | 이벤트 로그·증적 기반 | Evidence Collector 구성 | Zabbix·Slack·IaC·DB 이벤트의 Run ID / Incident ID 기록. 전체 E2E 실측은 별도 검증 필요 |
 
+<br>
+<br>
 <br>
 <br>
 
