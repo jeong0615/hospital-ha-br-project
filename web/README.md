@@ -1,6 +1,8 @@
-# Web Server
+# Web
 
 Web Application과 Web Server 설정을 새 Ubuntu 또는 DR 환경에서 재구성하기 위한 공개 백업이다. 애플리케이션 파일과 `/etc` 설정은 실제 Web 서버 절대경로를 기준으로 `rootfs/`에 배치한다.
+
+<br>
 
 ## 구조
 
@@ -46,6 +48,8 @@ web/rootfs/etc/systemd/system/
 
 Cloudflared, Netplan, Zabbix 설정도 각각 `rootfs/etc/` 아래의 실제 절대경로에 대응한다. `backup-docs/`와 `server-backup/docs/`는 운영·복구 설명, `server-backup/scripts/`는 사전 점검·배포 준비·health check 스크립트다.
 
+<br>
+
 ## 재구성 순서
 
 1. 새 Ubuntu, Node.js/npm, Nginx와 필요한 패키지를 준비한다.
@@ -66,6 +70,8 @@ cd web/server-backup/scripts
 ```
 
 `deploy-web.sh`는 지정한 새 대상 디렉터리에 소스와 example 환경 파일만 준비하며, 기존 운영·시스템 경로에는 쓰지 않는다.
+
+<br>
 
 ## 제외 항목
 
