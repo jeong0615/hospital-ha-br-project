@@ -1,18 +1,38 @@
 # Cisco Catalyst 2950 L2 Switch
 
 <br>
+<br>
+<br>
+<br>
 
 ## 장비 요약
 
-- Hostname: `L2-SW`
-- Management IP: `IP_REDACTED/29`
-- Default Gateway: `IP_REDACTED`
-- Fa0/3: Router Uplink / VLAN 1,100 Trunk
-- Fa0/22: Web VLAN20 Access
-- Fa0/23: L3-SW1(3550) Trunk
-- Fa0/24: L3-SW2(3560) Trunk
-- Spanning Tree: Rapid-PVST
-- Remote Management: Telnet / Local Login
+- **Model:** Cisco Catalyst 2950
+- **Hostname:** `L2-Switch`
+- **Role:** Physical Network Access / Uplink Switch
+- **Management VLAN:** `VLAN 1`
+- **Management IP:** `IP_REDACTED` (원본 서브넷 마스크 확인)
+- **Default Gateway:** `IP_REDACTED`
+- **Spanning Tree:** `Rapid-PVST`
+- **Switching:** `Access / 802.1Q Trunk`
+
+### 주요 인터페이스
+
+| Interface | Mode | VLAN | 연결 대상 |
+| :--- | :--- | :--- | :--- |
+| **Fa0/3** | Trunk | 1, 100 | Cisco Router Uplink |
+| **Fa0/4** | Trunk | 설정 확인 필요 | 연결 대상 확인 필요 |
+| **Fa0/22** | Access | 20 | Web 네트워크 / USB LAN |
+| **Fa0/23** | Trunk | 10, 20, 30, 100 | Catalyst 3550 |
+| **Fa0/24** | Trunk | 10, 20, 30, 100 | Catalyst 3560 |
+
+### 주요 역할
+
+Cisco Catalyst 2950은 온프레미스 물리 네트워크의 L2 Access Switch로 사용한다.
+
+Router, L3 Core Switch 및 Web 네트워크 연결을 담당하며, Access/Trunk 포트를 통해 VLAN 트래픽을 전달한다.
+
+Rapid-PVST를 적용하여 스위칭 구간의 L2 루프 방지 및 네트워크 안정성을 확보한다.
 
 <br>
 
