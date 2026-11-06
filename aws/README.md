@@ -1,6 +1,8 @@
-# AWS DR 구성 백업
+# AWS (AWS DR)
 
 이 디렉터리는 AWS DR 환경을 공개 가능한 수준에서 설명한다. `physical/`·`gns3/`처럼 구성과 연결 관계를 기록하며, 실행 가능한 Terraform·Ansible·CI/CD 소스는 기존 `msp/`와 `ci-cd/`에 보관한다. 이 문서는 계정이나 EC2 디스크를 복제한 백업이 아니다.
+
+<br>
 
 ## 구조
 
@@ -9,6 +11,8 @@ aws/
 ├── README.md       # 구성과 재구성 순서
 └── inventory.md    # 민감정보를 제외한 AWS 읽기 전용 관측 결과
 ```
+
+<br>
 
 ## 구성 관계
 
@@ -23,6 +27,8 @@ On-Prem / MSP ── VPN·운영 자동화 ── AWS DR VPC
 ```
 
 Terraform 원본 구성은 `ci-cd/infra/terraform/`과 `msp/rootfs/home/cloud/hospital-dr-codex/infra/terraform/`에서 찾을 수 있다. 서버 설정과 복구 절차는 `ci-cd/automation/ansible/`, `msp/`의 운영 코드와 각 runbook을 참조한다. 공개 백업에서는 AWS 리소스와 계정 식별자를 치환했으므로, 이 파일만으로 실제 계정을 재생성하거나 Terraform을 바로 적용할 수는 없다.
+
+<br>
 
 ## 새 계정에서 재구성할 때
 
