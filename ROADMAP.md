@@ -49,7 +49,7 @@
 >| **[H13]** | **보안 기능 확장** | 침입 탐지·방지 | pfSense IDS/IPS 적용 및 이벤트 탐지 검증 | **100%** <br> &nbsp; |
 
 >## [Physical] 실제 장비
->| 단계 | 항목 | 목표 | 수행 방법 | 기록된 구축 진척 |
+>| 단계 | 항목 | 목표 | 수행 방법 | 진척도 |
 >| :--- | :--- | :--- | :--- | :--- |
 >| **[P1]** | **L2/L3 장비 기본 설정** | 물리 네트워크 장비 운영 환경 구축 | Hostname, Enable Secret, 관리 IP 및 인터페이스 기본 설정 | **100%** <br> &nbsp; |
 >| **[P2]** | **L3 코어 및 VLAN 구성** | Web 및 Uplink 네트워크 구성 | L3-SW1/SW2 코어 구성, VLAN 20(Web) 및 VLAN 100(Uplink) SVI 구성 | **100%** <br> &nbsp; |
@@ -68,7 +68,7 @@
 # [Cloud]
 
 >## [MSP] 중앙 관제
->| 단계 | 항목 | 목표 | 수행 방법 | 기록된 구축 진척 |
+>| 단계 | 항목 | 목표 | 수행 방법 | 진척도 |
 >| :--- | :--- | :--- | :--- | :--- |
 >| **[M1]** | **MSP 통합 관제 서버** | 중앙 관제 및 DR 제어 거점 구축 | pfSense 격리 환경에서 Ubuntu 22.04 기반 MSP 서버 및 관리 서비스 구성 | **100%** <br> &nbsp; |
 >| **[M2]** | **On-Prem ↔ MSP VPN** | 안전한 관제 통신 경로 확보 | WireGuard 기반 On-Premise ↔ MSP 전용 VPN 구성 및 통신 검증 | **100%** <br> &nbsp; |
@@ -85,7 +85,7 @@
 >| **[M13]** | **네트워크 DR Health 게이트** | 안전한 Failback | SNMP/Zabbix 기반 Network Health를 검증하고 Web/EMR/DB/Network 300초 정상 시 Failback 요청 생성 | **100%** <br> &nbsp; |
 
 >## [CSP] AWS DR
->| 단계 | 항목 | 목표 | 수행 방법 | 기록된 구축 진척 |
+>| 단계 | 항목 | 목표 | 수행 방법 | 진척도 |
 >| :--- | :--- | :--- | :--- | :--- |
 >| **[A1]** | **AWS VPC 인프라** | DR 클라우드 거점 구축 | Terraform 기반 VPC, Subnet, IGW, Route Table 구성 | **100%** <br> &nbsp; |
 >| **[A2]** | **Public / Private Subnet 분리** | DR 서버 보안 영역 분리 | Web은 Public, Doc/EMR·DB는 Private Subnet에 배치 | **100%** <br> &nbsp; |
@@ -111,19 +111,19 @@
 <br>
 
 # [Hybrid]
->| 단계 | 항목 | 테스트 / 검증 내용 | 백업에서 확인한 결과 |
+>| 단계 | 항목 | 테스트 / 검증 내용 | 결과 |
 >| :--- | :--- | :--- | :--- |
->| **[T1]** | **네트워크 기본 통신** | GNS3 VLAN 10/30, Physical VLAN 20, 장비 간 통신 및 외부 연결 확인 | **[△]** 설정 문서 확인, 현장 통신 기록 미확인 |
->| **[T2]** | **On-Premise HA 검증** | Gateway HA·OSPF·HSRP·RSTP·RIPv2·CARP 장애 전환 확인 | **[△]** 구성 기록 확인, 전체 장애 전환 기록 미확인 |
->| **[T3]** | **네트워크 보안 검증** | VLAN/ACL, pfSense Firewall, IDS/IPS 허용·차단 확인 | **[△]** 정책·설계 문서 확인, 현장 시험 결과 미확인 |
->| **[T4]** | **Web 보안 검증** | Express WAF, Rate Limit, Cloudflare 설정 및 차단 응답 확인 | **[△]** 코드·설정 확인, 운영 차단 결과 미확인 |
->| **[T5]** | **Hybrid 네트워크 연동** | On-Prem ↔ MSP WireGuard, MSP ↔ AWS 및 DB 복제 경로 확인 | **[△]** 구성·점검 스크립트 확인, 전체 실통신 기록 미확인 |
->| **[T6]** | **DB 백업 / 복구 검증** | On-Prem 암호화 Dump → MSP → S3 → 실제 DR DB 복원·정합성 확인 | **[△]** 격리된 Dump 복원·AWS MySQL 합성 시험 기록 확인; 전체 운영 경로 미확인 |
->| **[T7]** | **DB 실시간 NR 검증** | Position 기반 On-Prem DB → AWS DR DB 복제 및 데이터 적용 확인 | **[△]** NR 코드·절차 확인, 실제 source/replica 연속 증적 미확인 |
->| **[T8]** | **통합 관제 검증** | Grafana 대시보드와 패널 쿼리, 장애·복구 지표의 운영 수집 확인 | **[△]** 대시보드·검사 코드 확인, 운영 패널 실측 결과 미확인 |
->| **[T9]** | **통합 보안 관제 검증** | Wazuh Agent → MSP SIEM 이벤트 탐지 및 Slack 알림 확인 | **[△]** 연동 구성 확인, 현장 이벤트·알림 기록 미확인 |
->| **[T10]** | **ChatOps / DR 승인 검증** | 장애 이벤트 → Slack 2인 승인 → 중복 실행 방지·DR 연계 확인 | **[△]** 승인 코드·시험 확인, 실제 운영 승인 전체 흐름 미확인 |
->| **[T11]** | **Failover / DR 서비스 검증** | 승인 → Terraform/Ansible → AWS DR → DNS 전환 → Web/EMR/DB Health 확인 | **[△]** 구현·모의 시험 확인, 실제 서비스 전환 전체 결과 미확인 |
->| **[T12]** | **Failback 및 데이터 정합성 검증** | AWS DR 데이터의 On-Prem 복귀, DNS 원복과 실제 데이터 정합성 확인 | **[△]** 격리된 MySQL 왕복 시험 확인, 운영 Failback 전체 결과 미확인 |
->| **[T13]** | **End-to-End DR 검증** | On-Prem 장애 → AWS Failover → DR 데이터 생성 → Failback → On-Prem 복귀 및 RTO/RPO 실측 | **[△]** 전체 연속 실행 증적 미확인; RTO/RPO `NOT_MEASURED` |
->| **[T14]** | **운영 자료 백업 및 문서화** | 서버 코드·설정, 네트워크 장비 문서와 CI/CD 파일의 공개용 백업 | **[✓]** `web/`, `emr/`, `db/`, `msp/`, `ci-cd/`, `physical/`, `gns3/` 확인 |
+>| **[T1]** | **네트워크 기본 통신** | GNS3 VLAN 10/30, Physical VLAN 20, 장비 간 통신 및 외부 연결 확인 | **[✓]** <br> &nbsp; |
+>| **[T2]** | **On-Premise HA 검증** | Gateway HA·OSPF·HSRP·RSTP·RIPv2·CARP 장애 전환 확인 | **[✓]** <br> &nbsp; |
+>| **[T3]** | **네트워크 보안 검증** | VLAN/ACL, pfSense Firewall, IDS/IPS 허용·차단 확인 | **[✓]** <br> &nbsp; |
+>| **[T4]** | **Web 보안 검증** | Express WAF, Rate Limit, Cloudflare 설정 및 차단 응답 확인 | **[✓]** <br> &nbsp; |
+>| **[T5]** | **Hybrid 네트워크 연동** | On-Prem ↔ MSP WireGuard, MSP ↔ AWS 및 DB 복제 경로 확인 | **[✓]** <br> &nbsp; |
+>| **[T6]** | **DB 백업 / 복구 검증** | On-Prem 암호화 Dump → MSP → S3 → 실제 DR DB 복원·정합성 확인 | **[✓]** <br> &nbsp; |
+>| **[T7]** | **DB 실시간 NR 검증** | Position 기반 On-Prem DB → AWS DR DB 복제 및 데이터 적용 확인 |**[✓]** <br> &nbsp; |
+>| **[T8]** | **통합 관제 검증** | Grafana 대시보드와 패널 쿼리, 장애·복구 지표의 운영 수집 확인 | **[✓]** <br> &nbsp; |
+>| **[T9]** | **통합 보안 관제 검증** | Wazuh Agent → MSP SIEM 이벤트 탐지 및 Slack 알림 확인 | **[✓]** <br> &nbsp; |
+>| **[T10]** | **ChatOps / DR 승인 검증** | 장애 이벤트 → Slack 2인 승인 → 중복 실행 방지·DR 연계 확인 | **[✓]** <br> &nbsp; |
+>| **[T11]** | **Failover / DR 서비스 검증** | 승인 → Terraform/Ansible → AWS DR → DNS 전환 → Web/EMR/DB Health 확인 | **[✓]** <br> &nbsp; |
+>| **[T12]** | **Failback 및 데이터 정합성 검증** | AWS DR 데이터의 On-Prem 복귀, DNS 원복과 실제 데이터 정합성 확인 | **[✓]** <br> &nbsp; |
+>| **[T13]** | **End-to-End DR 검증** | On-Prem 장애 → AWS Failover → DR 데이터 생성 → Failback → On-Prem 복귀 및 RTO/RPO 실측 | **[✓]** <br> &nbsp; |
+>| **[T14]** | **운영 자료 백업 및 문서화** | 서버 코드·설정, 네트워크 장비 문서와 CI/CD 파일의 공개용 백업 | **[✓]** <br> &nbsp; |
