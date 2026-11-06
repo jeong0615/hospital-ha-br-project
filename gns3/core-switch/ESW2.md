@@ -7,23 +7,35 @@
 
 ## 장비 요약
 
-- **Hostname:** `ESW1`
-- **Role:** GNS3 내부 네트워크 및 pfSense 방화벽 이중화 연계
-- **VLAN 10:** `IP_REDACTED/24`
-- **VLAN 30:** `IP_REDACTED/24`
-- **VLAN 100:** `IP_REDACTED/24`
-- **Switching:** Access / Trunk 구성
-- **IP Routing:** Enabled
-- **Spanning Tree:** Enabled (PortFast on Access Ports)
-- **Firewall HA:** pfSense CARP 연계
+- **Hostname:** `ESW2`
+- **Role:** GNS3 내부 네트워크 및 pfSense 방화벽 HA 연계
+- **VLAN 10:** `IP_REDACTED/24 (VIP: IP_REDACTED)`
+- **VLAN 30:** `IP_REDACTED/24 (VIP: IP_REDACTED)`
+- **VLAN 100:** `IP_REDACTED/24 (VIP: IP_REDACTED)`
+- **HSRP Priority:** `100 (All Groups)`
+- **HSRP State:** `Standby (검증 시점 기준)`
+- **HSRP Preempt:** `Enabled`
+- **IP Routing:** `Enabled`
+- **Static Default Route:** `IP_REDACTED`
+- **DHCP:** `VLAN 10 (LAN10 Pool)`
+- **Switching:** `Access / Trunk (802.1Q)`
+- **Spanning Tree:** `Enabled (PortFast on Access Ports)`
+- **Firewall HA:** `pfSense CARP 연계`
 
 <br>
 
 ## 주요 역할
 
-ESW1은 GNS3 내부 네트워크에서 VLAN별 통신 경로를 제공하고, pfSense 방화벽 이중화 환경의 네트워크 연결을 지원한다.
+ESW2는 GNS3 내부 네트워크에서 VLAN 10/30/100의
+통신 경로를 제공하며, ESW1과 함께 게이트웨이
+이중화 환경을 구성한다.
 
-방화벽의 Active/Backup 전환 및 공유 VIP 관리는 pfSense CARP에서 수행한다.
+HSRP 우선순위 100을 설정하여 ESW1보다 낮은
+우선순위를 갖도록 구성하였으며, pfSense CARP
+방화벽 이중화 환경의 네트워크 연결도 지원한다.
+
+방화벽의 MASTER/BACKUP 전환은 pfSense CARP에서
+별도로 수행한다.
 
 <br>
 
