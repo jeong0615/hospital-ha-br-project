@@ -1,4 +1,4 @@
-# [Standby L3 Switch] Cisco Catalyst 3550
+# [Standby L3 Switch] Cisco 3550 Catalyst
 
 <br>
 
