@@ -14,7 +14,7 @@
 | MySQL client | 8.0.46-0ubuntuIP_REDACTED |
 | 기타 | curl, ca-certificates, openssh-server |
 
-전체 dpkg 조회는 `web/inventory/raw-packages.txt`입니다. 이 목록 전체를 새 서버의 필수 설치 목록으로 사용하지 않습니다. Nginx active modules-enabled에 geoip2/image-filter/xslt/mail/stream 관련 모듈 include가 있으므로 그대로 재현하려면 해당 패키지를 별도 확인합니다. Node 재현 버전은 관측값이며 향후 업데이트 권고를 의미하지 않습니다.
+전체 dpkg 조회 원본은 공개 백업에 포함하지 않았습니다. 이 목록 전체를 새 서버의 필수 설치 목록으로 사용하지 않습니다. Nginx active modules-enabled에 geoip2/image-filter/xslt/mail/stream 관련 모듈 include가 있으므로 그대로 재현하려면 해당 패키지를 별도 확인합니다. Node 재현 버전은 관측값이며 향후 업데이트 권고를 의미하지 않습니다.
 
 Dependency/DevDependency는 package.json 및 lock을 기준으로 아래에 기록합니다. node_modules는 제외했으며 npm ci는 현재 서버에서 실행하지 않았습니다. npm CLI 경로와 패키지 버전 차이는 충돌 보고에 기록합니다.
 

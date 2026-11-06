@@ -1,6 +1,6 @@
 # 실제 소스 분석
 
-근거: `web/app/app.js`, `routes/check.js`, `views/`, `package.json`. 코드의 정적 분석이며 인증/DB 쓰기 테스트는 하지 않았습니다.
+근거: `web/rootfs/home/vboxuser/hospital-web/app.js`, `routes/check.js`, `views/`, `package.json`. 코드의 정적 분석이며 인증/DB 쓰기 테스트는 하지 않았습니다.
 
 - Entry: package main `app.js`, start `node app.js`; Express 4, EJS view engine; public 정적 제공.
 - DB: mysql2/promise pool, connectionLimit 10, queueLimit 0, connectTimeout 30000ms. 시작 시 연결 확인. `query`/`execute`와 `?` 파라미터 사용.

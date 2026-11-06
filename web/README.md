@@ -26,39 +26,36 @@ web/
 │   └── environment.example
 ├── monitoring/
 │   └── zabbix-agent/README.md
+├── rootfs/
+│   ├── etc/
+│   │   ├── cloudflared/
+│   │   ├── netplan/
+│   │   ├── nginx/
+│   │   ├── systemd/system/
+│   │   └── zabbix/
+│   └── home/vboxuser/hospital-web/
+│       ├── app.js
+│       ├── public/
+│       ├── routes/
+│       ├── views/
+│       ├── package.json
+│       └── package-lock.json
 └── server-backup/
-    ├── app/
-    │   ├── app.js
-    │   ├── public/
-    │   ├── routes/
-    │   ├── sql/
-    │   ├── views/
-    │   ├── package.json
-    │   └── package-lock.json
-    ├── configs/
-    │   ├── cloudflared/
-    │   ├── netplan/
-    │   ├── nginx/
-    │   ├── systemd/
-    │   └── zabbix-agent/
     ├── docs/
-    ├── inventory/
     └── scripts/
 ```
 
-`server-backup/app/`에는 Web Application Source, 정적 파일, Route, View와 Dependency 정의를 보관한다.
+`rootfs/home/vboxuser/hospital-web/`에는 Web Application Source, 정적 파일, Route, View와 Dependency 정의를 보관한다.
 
-`server-backup/configs/`에는 Cloudflared, Netplan, Nginx, systemd 및 Zabbix Agent 설정을 보관한다.
+`rootfs/etc/`에는 Cloudflared, Netplan, Nginx, systemd 및 Zabbix Agent 설정을 실제 절대경로 기준으로 보관한다.
 
 `server-backup/docs/`에는 Application, Environment, systemd 및 복구 문서를 보관한다.
-
-`server-backup/inventory/`에는 수집 당시의 시스템·네트워크·서비스 검증 결과를 보관한다.
 
 `server-backup/scripts/`에는 배포, 실행 및 점검 Script를 보관한다.
 
 `backup-docs/`, `cloudflare/`, `dr/`, `monitoring/`은 Web 백업의 운영·DR·연계 문서 영역이다. `docs/legacy/`와 `.bak` 파일은 현재 활성 설정으로 간주하지 않고 복구 전에 검토한다.
 
-`server-backup/app/sql/`의 SQL은 애플리케이션용 예시 또는 fixture로만 취급한다. 실제 운영 DB Dump는 `db/`에서 별도로 관리한다.
+애플리케이션에 포함된 SQL은 예시 또는 fixture로만 취급한다. 실제 운영 DB Dump는 `db/`에서 별도로 관리한다.
 
 <br>
 
@@ -106,7 +103,7 @@ Web Server 백업에는 다음 내용을 포함한다.
 2. Network, DNS 및 시간 동기화를 확인한다.
 3. Repository를 clone한다.
 4. 필요한 Runtime, Docker 및 Web Server Package를 설치한다.
-5. `web/server-backup/app/`의 Web Application Source를 배치한다.
+5. `web/rootfs/home/vboxuser/hospital-web/`의 Web Application Source를 배치한다.
 6. 환경변수와 필요한 Secret을 별도 저장소에서 주입한다.
 7. Docker 또는 Application Runtime을 구성한다.
 8. Nginx / Apache 설정을 적용한다.
@@ -116,7 +113,7 @@ Web Server 백업에는 다음 내용을 포함한다.
 12. 외부망에서 Web Service 접근 여부를 확인한다.
 13. MSP Monitoring 및 Alert 연동을 확인한다.
 
-Node.js Application인 경우에는 `web/server-backup/app/`에서 Dependency를 설치하고, 실제 운영 방식에 맞춰 Process Manager 또는 systemd를 구성한다.
+Node.js Application인 경우에는 `web/rootfs/home/vboxuser/hospital-web/`에서 Dependency를 설치하고, 실제 운영 방식에 맞춰 Process Manager 또는 systemd를 구성한다.
 
 <br>
 
