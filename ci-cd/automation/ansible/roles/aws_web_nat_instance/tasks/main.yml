@@ -1,0 +1,119 @@
+---
+- name: Keep the optional Web NAT Instance path disabled by default
+  ansible.builtin.debug:
+    msg: "AWS_WEB_NAT_INSTANCE_ENABLED is false; no Web firewall, sysctl, service, or route is changed."
+  when: not (aws_web_nat_instance_enabled | bool)
+
+- name: Validate the Web NAT Instance contract before any live change
+  ansible.builtin.assert:
+    that:
+      - aws_web_nat_instance_action in ['apply', 'remove']
+      - aws_web_nat_instance_expected_instance_id == 'AWS_RESOURCE_ID_REDACTED'
+      - aws_web_nat_instance_expected_private_ip == '10.20.10.10'
+      - aws_web_nat_instance_expected_vpc_id == 'AWS_RESOURCE_ID_REDACTED'
+      - aws_web_nat_instance_uplink_interface not in ['wg0', aws_web_nat_instance_interface]
+      - aws_web_nat_instance_interface == 'wg-aws-dr'
+      - aws_web_nat_instance_private_cidrs == ['10.20.10.0/24', '10.20.20.0/24', '10.20.30.0/24']
+      - aws_web_nat_instance_excluded_destinations == ['10.20.0.0/16', '10.251.0.0/24', '192.168.200.0/24']
+      - "'10.250.' not in (aws_web_nat_instance_excluded_destinations | join(','))"
+      - "'192.168.200.' in (aws_web_nat_instance_excluded_destinations | join(','))"
+    fail_msg: "Web NAT Instance contract mismatch; refusing live configuration."
+  when: aws_web_nat_instance_enabled | bool
+
+- name: Verify this is the approved Web host before any live change
+  ansible.builtin.assert:
+    that:
+      - ansible_default_ipv4.address == aws_web_nat_instance_expected_private_ip
+    fail_msg: "The NAT Instance role may run only on the approved Web private IP."
+  when: aws_web_nat_instance_enabled | bool
+
+- name: Verify iptables is available without changing firewall state
+  ansible.builtin.command: iptables --version
+  register: aws_web_nat_instance_iptables_version
+  changed_when: false
+  when: aws_web_nat_instance_enabled | bool
+
+- name: Configure the Web NAT Instance
+  block:
+    - name: Ensure iptables tooling exists
+      ansible.builtin.apt:
+        name: iptables
+        state: present
+        update_cache: false
+      when: not ansible_check_mode
+
+    - name: Persist IPv4 forwarding for the Web gateway and existing WireGuard gateway
+      ansible.builtin.copy:
+        dest: "{{ aws_web_nat_instance_sysctl_file }}"
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          # Hospital DR Web gateway: shared by the optional NAT Instance and wg-aws-dr.
+          net.ipv4.ip_forward = 1
+      notify: Reload Web gateway sysctl
+
+    - name: Install the dedicated, non-flushing firewall controller
+      ansible.builtin.template:
+        src: hospital-dr-web-nat-instance.sh.j2
+        dest: "{{ aws_web_nat_instance_script }}"
+        owner: root
+        group: root
+        mode: '0750'
+
+    - name: Install the manual/boot-persistent NAT Instance oneshot
+      ansible.builtin.template:
+        src: hospital-dr-web-nat.service.j2
+        dest: "/etc/systemd/system/{{ aws_web_nat_instance_service }}"
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Reload systemd
+
+    - name: Apply only the project-owned NAT chains
+      ansible.builtin.command: "{{ aws_web_nat_instance_script }} apply"
+      register: aws_web_nat_instance_apply
+      changed_when: true
+      when: not ansible_check_mode
+
+    - name: Enable the NAT Instance service without touching WireGuard services
+      ansible.builtin.systemd:
+        name: "{{ aws_web_nat_instance_service }}"
+        enabled: true
+        state: started
+        daemon_reload: true
+      when: not ansible_check_mode
+  when:
+    - aws_web_nat_instance_enabled | bool
+    - aws_web_nat_instance_action == 'apply'
+
+- name: Remove only the project-owned NAT chains and service
+  block:
+    - name: Stop the project-owned NAT service
+      ansible.builtin.systemd:
+        name: "{{ aws_web_nat_instance_service }}"
+        enabled: false
+        state: stopped
+        daemon_reload: true
+      failed_when: false
+      when: not ansible_check_mode
+
+    - name: Remove only the project-owned NAT rules
+      ansible.builtin.command: "{{ aws_web_nat_instance_script }} remove"
+      changed_when: true
+      failed_when: false
+      when: not ansible_check_mode
+
+    - name: Remove the project-owned NAT service unit
+      ansible.builtin.file:
+        path: "/etc/systemd/system/{{ aws_web_nat_instance_service }}"
+        state: absent
+      notify: Reload systemd
+
+    - name: Remove the project-owned NAT controller
+      ansible.builtin.file:
+        path: "{{ aws_web_nat_instance_script }}"
+        state: absent
+  when:
+    - aws_web_nat_instance_enabled | bool
+    - aws_web_nat_instance_action == 'remove'

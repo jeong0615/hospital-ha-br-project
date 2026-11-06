@@ -1,0 +1,13 @@
+---
+# Explicit rollback/removal playbook. Run only after private route rollback to
+# the still-existing NAT Gateway has been verified.
+- name: Remove only the Web NAT Instance rules
+  hosts: aws_web_nat_instance
+  become: true
+  gather_facts: true
+  any_errors_fatal: true
+  vars:
+    aws_web_nat_instance_enabled: true
+    aws_web_nat_instance_action: remove
+  roles:
+    - aws_web_nat_instance
