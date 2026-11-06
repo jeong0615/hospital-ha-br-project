@@ -1,20 +1,42 @@
 # [Standby L3 Switch] Cisco 3550 Catalyst
 
 <br>
+<br>
 
 ## 장비 요약
 
-- Hostname: `Standby-L3-SW`
-- Management/Core IP: `IP_REDACTED`
-- VLAN20: `IP_REDACTED/24`
-- VLAN100: `IP_REDACTED/24`
-- HSRP Priority: `200`
-- HSRP State: Standby
-- Routing: RIP v2, Static/Default Route
-- Spanning Tree: Rapid-PVST
-- EtherChannel: LACP Port-channel12
-- Security: WEB-FILTER Extended ACL
-- Remote Management: Telnet / Local Login
+- **Model:** `Cisco Catalyst 3550`
+- **Hostname:** `Standby-L3-SW`
+- **Role:** `Standby L3 Core / Gateway`
+- **VLAN 1:** `IP_REDACTED`
+- **VLAN 20:** `IP_REDACTED/24 (HSRP VIP: IP_REDACTED)`
+- **VLAN 100:** `IP_REDACTED/24`
+- **HSRP Group:** `20`
+- **HSRP Priority:** `200`
+- **HSRP State:** `Standby (검증 시점 기준)`
+- **HSRP Timers:** `Hello 1s / Hold 3s`
+- **HSRP Preempt:** `Enabled`
+- **Routing:** `RIPv2 / Static Route`
+- **Spanning Tree:** `Rapid-PVST`
+- **STP Priority:** `28672 (VLAN 20, 100)`
+- **EtherChannel:** `LACP Port-channel12 (Configured / Down)`
+- **ACL:** `WEB-FILTER (VLAN 20 Inbound)`
+- **Physical Uplink:** `Fa0/21 → Catalyst 2950`
+- **IP Routing:** `Enabled`
+
+<br>
+
+## 주요 역할
+
+Cisco Catalyst 3550은 병원 Physical Network의 Standby L3 Core Switch로 사용한다.
+
+VLAN 20에서 HSRP Priority 200을 설정하여 Active Catalyst 3560과 Virtual Gateway를 공유하고, Active 장비 장애 발생 시 Gateway 역할을 인계받도록 구성하였다.
+
+RIPv2 및 Static Route를 통해 네트워크 경로를 관리하며, WEB-FILTER ACL을 적용하여 VLAN 20의 Inbound 트래픽을 제어한다.
+
+Rapid-PVST를 적용하여 L2 루프 방지 기능을 구성하고, LACP 기반 Port-channel12를 설정하였다.
+
+단, Port-channel12는 기록 시점에 Down 상태로 확인되었다.
 
 <br>
 
