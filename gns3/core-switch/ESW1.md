@@ -1,5 +1,3 @@
-<br>
-
 ## 장비 요약
 
 - Hostname: `ESW1`
