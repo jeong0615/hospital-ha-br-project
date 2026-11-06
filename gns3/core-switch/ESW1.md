@@ -1,13 +1,22 @@
 ## 장비 요약
 
-- Hostname: `ESW1`
-- VLAN10: `IP_REDACTED/24 (VIP: IP_REDACTED)`
-- VLAN30: `IP_REDACTED/24 (VIP: IP_REDACTED)`
-- VLA100: `IP_REDACTED/24 (VIP: IP_REDACTED)`
-- HSRP Priority: `110 (All Groups)`
-- HSRP State: `Active (Preempt Enabled)`
-- Routing: `Enabled (Static Default Route: IP_REDACTED/0 via IP_REDACTED)`
-- Spanning Tree: `Enabled (PortFast on Access Ports)`
+- **Hostname:** `ESW1`
+- **Role:** GNS3 내부 네트워크 및 pfSense 방화벽 이중화 연계
+- **VLAN 10:** `IP_REDACTED/24`
+- **VLAN 30:** `IP_REDACTED/24`
+- **VLAN 100:** `IP_REDACTED/24`
+- **Switching:** Access / Trunk 구성
+- **IP Routing:** Enabled
+- **Spanning Tree:** Enabled (PortFast on Access Ports)
+- **Firewall HA:** pfSense CARP 연계
+
+<br>
+
+### 주요 역할
+
+ESW1은 GNS3 내부 네트워크에서 VLAN별 통신 경로를 제공하고, pfSense 방화벽 이중화 환경의 네트워크 연결을 지원한다.
+
+방화벽의 Active/Backup 전환 및 공유 VIP 관리는 pfSense CARP에서 수행한다.
 
 <br>
 
