@@ -1,4 +1,4 @@
-# Cisco Catalyst 2950 (L2 Switch / ACCESS)
+# [ACCESS L2 Switch] Cisco Catalyst 2950
 
 <br>
 <br>
