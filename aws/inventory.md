@@ -4,7 +4,7 @@
 
 조회 범위: `ap-northeast-2`의 프로젝트 관련 EC2·VPC와 계정의 ECR·S3·Lambda 구성
 
-방법: AWS CLI `describe-*` / `list-*` 및 S3 버킷 설정 조회. 리소스 식별자, 주소, 이름, 정책 본문, Secret 값과 데이터 내용은 기록하지 않았다.
+방법: AWS CLI `describe-*` / `list-*` 및 S3 버킷 설정 조회. 리소스 식별자, 주소, 이름, 정책 본문, Secret 값과 데이터 내용은 기록하지 않는다.
 
 | 항목 | 관측 결과 |
 | :--- | :--- |
