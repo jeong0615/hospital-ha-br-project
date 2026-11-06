@@ -4,17 +4,36 @@
 
 ## 장비 요약
 
-- Hostname: `Active-L3-Switch`
-- Management/Core IP: `IP_REDACTED`
-- VLAN20: `IP_REDACTED/24`
-- VLAN100: `IP_REDACTED/24`
-- HSRP Priority: `250`
-- HSRP State: Active
-- Routing: RIP v2, Default Route
-- Spanning Tree: Rapid-PVST
-- EtherChannel: LACP Port-channel12
-- Security: WEB-FILTER Extended ACL
-- Remote Management: Telnet / Local Login
+- **Model:** `Cisco Catalyst 3560`
+- **Hostname:** `L3-SW2`
+- **Role:** `Active L3 Core / Gateway`
+- **VLAN 20:** `IP_REDACTED/24 (HSRP VIP: IP_REDACTED)`
+- **VLAN 100:** `IP_REDACTED/24`
+- **HSRP Group:** `20`
+- **HSRP Priority:** `250`
+- **HSRP State:** `Active (검증 시점 기준)`
+- **HSRP Timers:** `Hello 1s / Hold 3s`
+- **HSRP Preempt:** `Enabled (Delay 5s)`
+- **Routing:** `RIPv2 / Static Route`
+- **Spanning Tree:** `Rapid-PVST`
+- **STP Priority:** `24576 (VLAN 20, 100)`
+- **EtherChannel:** `LACP Port-channel12 (Configured / Down)`
+- **ACL:** `WEB-FILTER (VLAN 20 Inbound)`
+- **VTP Mode:** `Transparent`
+- **Physical Uplink:** `Fa0/22 → Catalyst 2950`
+- **IP Routing:** `Enabled`
+
+<br>
+
+## 주요 역할
+
+Cisco Catalyst 3560은 병원 Physical Network의 Active L3 Core Switch로 사용한다.
+
+VLAN 20에서 HSRP Priority 250을 적용하고, Standby L3 Switch와 Virtual Gateway를 공유하여 Gateway 이중화를 구성한다.
+
+RIPv2와 Static Route를 통해 네트워크 경로를 관리하며, WEB-FILTER ACL을 통해 VLAN 20의 Inbound 트래픽에 접근 제어 정책을 적용한다.
+
+Rapid-PVST를 통해 L2 루프 방지 기능을 구성하고, LACP 기반 Port-channel12를 설정하였다.
 
 <br>
 
