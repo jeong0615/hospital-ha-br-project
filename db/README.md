@@ -1,6 +1,8 @@
-# DB Server
+# DB
 
 DB Server를 재구성하고 유지보수하기 위한 MySQL 설정, 백업 스크립트, systemd 정의와 인벤토리를 보관한다. 이 디렉터리에는 평문 DB Dump, 암호화 백업 파일, 복호화 Key 또는 운영 비밀번호를 저장하지 않는다.
+
+<br>
 
 ## 구조
 
@@ -31,6 +33,8 @@ db/
 
 `configs/etc/mysql/`는 `/etc/mysql/`의 비밀이 아닌 설정을 원래 경로 기준으로 표현한다. `inventory/`에는 패키지, 서비스, 백업 경로, 테이블과 서버 요약을 저장하며 계정 비밀번호와 Secret은 포함하지 않는다.
 
+<br>
+
 ## 백업 스크립트
 
 `scripts/db_backup.sh`는 다음 값을 외부 Secret 저장소 또는 보호된 환경에서 주입받는 템플릿이다.
@@ -43,6 +47,8 @@ DB_BACKUP_ENCRYPTION_KEY
 
 `scripts/onprem_db_preflight.sh`는 DB 복구·failback 전에 필요한 호스트, 서비스, 경로와 사전 조건을 점검한다. `systemd/`의 service/timer는 새 서버에서 내용을 검토한 뒤에만 enable/start한다.
 
+<br>
+
 ## 복구 순서
 
 1. 새 Ubuntu에 동일 계열의 MySQL과 필요한 패키지를 설치한다.
@@ -54,6 +60,8 @@ DB_BACKUP_ENCRYPTION_KEY
 7. service/timer는 검토 후 필요한 경우에만 daemon-reload, enable/start한다.
 
 이 Repository의 DB 디렉터리는 코드와 복구 절차용이며 실제 운영 데이터 보관소가 아니다.
+
+<br>
 
 ## 제외 항목
 
