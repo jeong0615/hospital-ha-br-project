@@ -16,7 +16,9 @@
 - **Spanning Tree:** `Rapid-PVST`
 - **Switching:** `Access / 802.1Q Trunk`
 
-### 주요 인터페이스
+<br>
+
+## 주요 인터페이스
 
 | Interface | Mode | VLAN | 연결 대상 |
 | :--- | :--- | :--- | :--- |
@@ -26,7 +28,9 @@
 | **Fa0/23** | Trunk | 10, 20, 30, 100 | Catalyst 3550 |
 | **Fa0/24** | Trunk | 10, 20, 30, 100 | Catalyst 3560 |
 
-### 주요 역할
+<br>
+
+## 주요 역할
 
 Cisco Catalyst 2950은 온프레미스 물리 네트워크의 L2 Access Switch로 사용한다.
 
