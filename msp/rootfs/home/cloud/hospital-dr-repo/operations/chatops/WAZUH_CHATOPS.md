@@ -53,7 +53,7 @@ never creates a Failback request.
 ## Local mock example
 
 ```bash
-curl -fsS -X POST http://IP_REDACTED:5000/wazuh/alert \
+curl -fsS -X POST http://127.0.0.1:5000/wazuh/alert \
   -H 'Content-Type: application/json' \
   --data @tests/fixtures/wazuh/critical-ransomware-db.json
 ```

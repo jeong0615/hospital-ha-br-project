@@ -23,7 +23,7 @@ COPY views ./views
 
 # The host process uses loopback for PM2. Containers must listen on the
 # container interface so the Compose port mapping can reach the app.
-RUN sed -i "s/app\.listen(PORT, '127\.0\.0\.1'/app.listen(PORT, 'IP_REDACTED'/" app.js
+RUN sed -i "s/app\.listen(PORT, '127\.0\.0\.1'/app.listen(PORT, '0.0.0.0'/" app.js
 
 # npm is needed only in the install stage; keep the runtime image Node-only.
 RUN rm -rf /usr/local/lib/node_modules/npm \

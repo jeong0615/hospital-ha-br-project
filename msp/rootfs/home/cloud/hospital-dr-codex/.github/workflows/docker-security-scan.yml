@@ -357,7 +357,7 @@ jobs:
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h IP_REDACTED -uroot"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=12
@@ -486,7 +486,7 @@ jobs:
           docker run -d \
             --name "$container" \
             --network host \
-            --health-cmd="node -e \"require('http').get('http://IP_REDACTED:3000' + process.env.HEALTH_PATH, r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))\"" \
+            --health-cmd="node -e \"require('http').get('http://127.0.0.1:3000' + process.env.HEALTH_PATH, r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))\"" \
             --health-interval=5s \
             --health-timeout=5s \
             --health-retries=12 \
@@ -495,7 +495,7 @@ jobs:
             -e PORT=3000 \
             -e HEALTH_PATH="${HEALTH_PATH}" \
             -e SERVER_ROLE=ci-${{ matrix.name }} \
-            -e DB_HOST=IP_REDACTED \
+            -e DB_HOST=127.0.0.1 \
             -e DB_PORT=3306 \
             -e DB_USER=root \
             -e DB_PASSWORD= \
@@ -518,7 +518,7 @@ jobs:
           test "$(docker inspect --format '{{.State.Health.Status}}' "$container")" = healthy
           container_health="success"
           if curl --fail --silent --show-error --retry 5 --retry-delay 2 \
-            "http://IP_REDACTED:3000${HEALTH_PATH}" >/dev/null; then
+            "http://127.0.0.1:3000${HEALTH_PATH}" >/dev/null; then
             http_check="success"
           else
             http_check="failed"
@@ -862,7 +862,7 @@ jobs:
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h IP_REDACTED -uroot"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=12
@@ -897,7 +897,7 @@ jobs:
 
           (async () => {
             const admin = await mysql.createConnection({
-              host: 'IP_REDACTED',
+              host: '127.0.0.1',
               port: 3306,
               user: 'root',
               password: ''
@@ -906,7 +906,7 @@ jobs:
             await admin.end();
 
             const db = await mysql.createConnection({
-              host: 'IP_REDACTED',
+              host: '127.0.0.1',
               port: 3306,
               user: 'root',
               password: '',
@@ -982,7 +982,7 @@ jobs:
           set -euo pipefail
           app_log="${RUNNER_TEMP}/emr-mysql2-compatibility.log"
           PORT=3000 \
-            DB_HOST=IP_REDACTED \
+            DB_HOST=127.0.0.1 \
             DB_PORT=3306 \
             DB_USER=root \
             DB_PASSWORD= \
@@ -997,7 +997,7 @@ jobs:
 
           ready=0
           for attempt in $(seq 1 30); do
-            if curl --fail --silent --show-error http://IP_REDACTED:3000/api/patients >/dev/null; then
+            if curl --fail --silent --show-error http://127.0.0.1:3000/api/patients >/dev/null; then
               ready=1
               break
             fi
@@ -1008,27 +1008,27 @@ jobs:
             exit 1
           fi
 
-          curl --fail --silent --show-error http://IP_REDACTED:3000/ >/dev/null
-          curl --fail --silent --show-error http://IP_REDACTED:3000/api/patients >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:3000/ >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:3000/api/patients >/dev/null
           curl --fail --silent --show-error \
-            -X POST http://IP_REDACTED:3000/api/patients \
+            -X POST http://127.0.0.1:3000/api/patients \
             -H 'Content-Type: application/json' \
             -d '{"name":"API Compatibility Patient","birth_date":"2001-01-01","gender":"TEST","phone":"000-0001"}' >/dev/null
-          curl --fail --silent --show-error http://IP_REDACTED:3000/api/patients/1 >/dev/null
-          curl --fail --silent --show-error http://IP_REDACTED:3000/api/medical-records/recent >/dev/null
-          curl --fail --silent --show-error http://IP_REDACTED:3000/api/medical-records/stats >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:3000/api/patients/1 >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:3000/api/medical-records/recent >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:3000/api/medical-records/stats >/dev/null
           curl --fail --silent --show-error \
-            -X POST http://IP_REDACTED:3000/api/medical-records \
+            -X POST http://127.0.0.1:3000/api/medical-records \
             -H 'Content-Type: application/json' \
             -d '{"patient_id":1,"visit_date":"2026-09-02 12:00:00","diagnosis":"Compatibility test","doctor_id":1}' >/dev/null
-          curl --fail --silent --show-error http://IP_REDACTED:3000/api/medical-records/patient/1 >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:3000/api/medical-records/patient/1 >/dev/null
           curl --fail --silent --show-error \
-            -X POST http://IP_REDACTED:3000/api/logs \
+            -X POST http://127.0.0.1:3000/api/logs \
             -H 'Content-Type: application/json' \
             -d '{"user_id":1,"action_type":"COMPATIBILITY_TEST"}' >/dev/null
-          curl --fail --silent --show-error http://IP_REDACTED:3000/api/logs >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:3000/api/logs >/dev/null
           curl --fail --silent --show-error \
-            -X POST http://IP_REDACTED:3000/api/auth/login \
+            -X POST http://127.0.0.1:3000/api/auth/login \
             -H 'Content-Type: application/json' \
             -d '{"login_id":"compat","password":"<SET_IN_SECRET_STORE>"}' >/dev/null
 

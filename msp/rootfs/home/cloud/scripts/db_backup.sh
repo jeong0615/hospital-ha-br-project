@@ -67,7 +67,7 @@ ENCRYPTION_KEY="${DB_BACKUP_ENCRYPTION_KEY:-}"
 
 # 2. 클라우드 서버 전송 정보
 CLOUD_USER="${CLOUD_USER:-cloud}"
-CLOUD_IP="${CLOUD_IP:-IP_REDACTED}"
+CLOUD_IP="${CLOUD_IP:-10.10.10.10}"
 CLOUD_DEST="${CLOUD_DEST:-/home/cloud/db_backups/}"
 
 if [ -z "$ENCRYPTION_KEY" ]; then

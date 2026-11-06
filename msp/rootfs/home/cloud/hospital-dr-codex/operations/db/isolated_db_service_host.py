@@ -46,7 +46,7 @@ except ImportError:  # pragma: no cover - exercised by the remote CLI
 
 SERVICE_PORT = 3307
 SERVICE_USER = "hospital_dr_service"
-SERVICE_CLIENT_IPS = ("IP_REDACTED", "IP_REDACTED")
+SERVICE_CLIENT_IPS = ("10.20.10.10", "10.20.20.10")
 RESTORE_RESULT = Path("/var/lib/hospital-dr-dump-restore/status/restore.json")
 SERVICE_RESULT = Path("/var/lib/hospital-dr-dump-restore/status/service.json")
 PROMOTION_STATUS_ROOT = Path("/var/lib/hospital-dr-dump-restore/status/promotions")
@@ -144,7 +144,7 @@ def validate_service_receipt(
         or record.get("backup_id") != restore.get("backup_id")
         or record.get("request_id", "") != restore.get("request_id", "")
         or record.get("mysql_port") != SERVICE_PORT
-        or record.get("bind_addresses") != ["IP_REDACTED", expected_private_ip]
+        or record.get("bind_addresses") != ["127.0.0.1", expected_private_ip]
         or record.get("read_only") is not True
         or record.get("super_read_only") is not True
     ):
@@ -171,10 +171,10 @@ def _listener_addresses(output: str, private_ip: str, *, service_ready: bool) ->
             mysql.add(address)
         elif address.endswith(":33060"):
             mysqlx.add(address)
-    expected_mysql = {"IP_REDACTED:3307"}
+    expected_mysql = {"127.0.0.1:3307"}
     if service_ready:
         expected_mysql.add(f"{private_ip}:3307")
-    return mysql == expected_mysql and mysqlx.issubset({"IP_REDACTED:33060"})
+    return mysql == expected_mysql and mysqlx.issubset({"127.0.0.1:33060"})
 
 
 def _assigned_ipv4(private_ip: str, runner=subprocess.run) -> bool:
@@ -461,14 +461,14 @@ def _verify_no_scheduled_writer_paths(runner=subprocess.run, *, cron_directories
 
 
 def _expected_config(private_ip: str, *, quarantine: bool = False) -> str:
-    address = "IP_REDACTED" if quarantine else f"IP_REDACTED,{private_ip}"
+    address = "127.0.0.1" if quarantine else f"127.0.0.1,{private_ip}"
     return (
         "# Managed by Hospital DR isolated DB service preparation. Do not edit.\n"
         "[mysqld]\n"
         f"bind-address = {address}\n"
         f"port = {SERVICE_PORT}\n"
         "datadir = /var/lib/mysql\n"
-        "mysqlx-bind-address = IP_REDACTED\n"
+        "mysqlx-bind-address = 127.0.0.1\n"
         "local_infile = 0\n"
         "read_only = ON\n"
         "super_read_only = ON\n"
@@ -584,8 +584,8 @@ def _read_app_fence_receipt(
     if not isinstance(apps, dict) or set(apps) != {"web", "emr"}:
         raise RestoreError("APP_WRITE_FENCE_RECEIPT_MISMATCH")
     expected = {
-        "web": ("dr-web", "IP_REDACTED"),
-        "emr": ("dr-doc", "IP_REDACTED"),
+        "web": ("dr-web", "10.20.10.10"),
+        "emr": ("dr-doc", "10.20.20.10"),
     }
     for name, (host, source_ip) in expected.items():
         app = apps[name]
@@ -912,8 +912,8 @@ def record_readonly_health_receipt(
     if not isinstance(apps, dict) or set(apps) != {"web", "emr"}:
         raise RestoreError("READONLY_HEALTH_APP_RECEIPT_INVALID")
     for kind, host, source in (
-        ("web", "dr-web", "IP_REDACTED"),
-        ("emr", "dr-doc", "IP_REDACTED"),
+        ("web", "dr-web", "10.20.10.10"),
+        ("emr", "dr-doc", "10.20.20.10"),
     ):
         app = apps[kind]
         if (
@@ -992,7 +992,7 @@ def record_readonly_health_receipt(
         or status["read_only"]
         or status["super_read_only"]
         or status["port"] != SERVICE_PORT
-        or set(status["bind_addresses"]) != {"IP_REDACTED", expected_private_ip}
+        or set(status["bind_addresses"]) != {"127.0.0.1", expected_private_ip}
         or db.table_count() != restore["table_count"]
     ):
         raise RestoreError("READONLY_HEALTH_DB_STATE_MISMATCH")
@@ -1162,8 +1162,8 @@ def verify_existing_readonly_health_state(
     if not isinstance(apps, dict) or set(apps) != {"web", "emr"}:
         raise RestoreError("READONLY_HEALTH_RECEIPT_MISMATCH")
     for name, host, source_ip in (
-        ("web", "dr-web", "IP_REDACTED"),
-        ("emr", "dr-doc", "IP_REDACTED"),
+        ("web", "dr-web", "10.20.10.10"),
+        ("emr", "dr-doc", "10.20.20.10"),
     ):
         app = apps[name]
         if (
@@ -1201,7 +1201,7 @@ def verify_existing_readonly_health_state(
         identity.get("server_uuid") != health.get("db_server_uuid")
         or status.get("port") != SERVICE_PORT
         or status.get("datadir") != "/var/lib/mysql"
-        or set(status.get("bind_addresses", ())) != {"IP_REDACTED", expected_private_ip}
+        or set(status.get("bind_addresses", ())) != {"127.0.0.1", expected_private_ip}
         or status.get("read_only")
         or status.get("super_read_only")
         or db.table_count() != restore.get("table_count")
@@ -1370,7 +1370,7 @@ def verify_dump_dns_preflight(
     if (
         status["port"] != SERVICE_PORT
         or status["datadir"] != "/var/lib/mysql"
-        or set(status["bind_addresses"]) != {"IP_REDACTED", expected_private_ip}
+        or set(status["bind_addresses"]) != {"127.0.0.1", expected_private_ip}
         or status["read_only"]
         or status["super_read_only"]
     ):
@@ -1669,7 +1669,7 @@ def promote_service_db_write_fenced(
             or any(locked[ip] != "Y" for ip in SERVICE_CLIENT_IPS)
             or db.service_account_sessions() != 0
             or any(privileges != {"SELECT"} for privileges in grants.values())
-            or set(status["bind_addresses"]) != {"IP_REDACTED", expected_private_ip}
+            or set(status["bind_addresses"]) != {"127.0.0.1", expected_private_ip}
             or status["port"] != SERVICE_PORT
             or status["datadir"] != "/var/lib/mysql"
             or db.table_count() != restore["table_count"]
@@ -1768,13 +1768,13 @@ def verify_service_preconditions(
         raise RestoreError("RESTORED_SCHEMA_TABLE_COUNT_MISMATCH")
     listener_output = db.listener_output()
     configured_addresses = set(status["bind_addresses"])
-    if configured_addresses == {"IP_REDACTED"} and not status["read_only"] and not status["super_read_only"]:
+    if configured_addresses == {"127.0.0.1"} and not status["read_only"] and not status["super_read_only"]:
         if config_path.exists() or config_path.is_symlink():
             raise RestoreError("SERVICE_MYSQL_CONFIG_ALREADY_PRESENT")
         if not _listener_addresses(listener_output, expected_private_ip, service_ready=False):
             raise RestoreError("ISOLATED_MYSQL_LISTENER_EXPOSED")
         state = "RESTORE_LOCAL_ONLY_READY"
-    elif configured_addresses == {"IP_REDACTED", expected_private_ip} and status["read_only"] and status["super_read_only"]:
+    elif configured_addresses == {"127.0.0.1", expected_private_ip} and status["read_only"] and status["super_read_only"]:
         if not _listener_addresses(listener_output, expected_private_ip, service_ready=True):
             raise RestoreError("ISOLATED_MYSQL_LISTENER_SET_INVALID")
         if not allow_unrecorded_prepared:
@@ -1885,7 +1885,7 @@ def prepare_service_listener(
                 "status": "SUCCESS",
                 "service_prepared": True,
                 "mysql_port": SERVICE_PORT,
-                "bind_addresses": ["IP_REDACTED", expected_private_ip],
+                "bind_addresses": ["127.0.0.1", expected_private_ip],
                 "read_only": True,
                 "super_read_only": True,
                 "completed_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -1909,7 +1909,7 @@ def prepare_service_listener(
                 state = db.status()
                 listeners = db.listener_output()
                 if (
-                    set(state["bind_addresses"]) != {"IP_REDACTED"}
+                    set(state["bind_addresses"]) != {"127.0.0.1"}
                     or not state["read_only"]
                     or not state["super_read_only"]
                     or not _listener_addresses(listeners, expected_private_ip, service_ready=False)

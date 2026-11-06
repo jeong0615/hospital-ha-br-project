@@ -61,15 +61,15 @@ port:
   tcp:1514:
     listening: true
     ip:
-    - IP_REDACTED
+    - 0.0.0.0
   tcp:1515:
     listening: true
     ip:
-    - IP_REDACTED
+    - 0.0.0.0
   tcp:55000:
     listening: true
     ip:
-    - IP_REDACTED
+    - 0.0.0.0
 process:
   filebeat:
     running: true

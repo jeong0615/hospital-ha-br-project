@@ -14,7 +14,7 @@ python3 operations/demo/aws_mysql_data_roundtrip.py \
 
 Runner가 계정·고정 인스턴스·VPC·합성 태그·공인 IP 없음·초기 `stopped`를 확인한다. AWS의 `hospital_demo`가 없거나, 지정된 테이블/스키마와 알려진 합성 행 A 또는 A+B만 있을 때만 재설정한다. 다른 DB, 행, 테이블, 트리거·루틴·이벤트가 있으면 초기화 전에 중단한다. reset은 이 합성 데이터베이스 하나에만 적용되고, 로컬 운영 MySQL이나 운영 DB는 사용하지 않는다.
 
-Runner는 시작 후 `/etc/my.cnf` 원본을 권한 0600 백업하고 합성 설정 조각을 로드한다. MySQL의 실제 bind 값, TCP listener(`IP_REDACTED:3306`만), mysqlx 비활성, 서비스 자동시작 비활성을 확인하기 전에는 합성 DB를 reset하지 않는다. MySQL 설정/검증이 실패하면 현재 인스턴스의 DB를 건드리지 않고 종료하며, 다른 합성 상태면 fail-closed 한다.
+Runner는 시작 후 `/etc/my.cnf` 원본을 권한 0600 백업하고 합성 설정 조각을 로드한다. MySQL의 실제 bind 값, TCP listener(`127.0.0.1:3306`만), mysqlx 비활성, 서비스 자동시작 비활성을 확인하기 전에는 합성 DB를 reset하지 않는다. MySQL 설정/검증이 실패하면 현재 인스턴스의 DB를 건드리지 않고 종료하며, 다른 합성 상태면 fail-closed 한다.
 
 성공 JSON에서 다음을 확인한다.
 

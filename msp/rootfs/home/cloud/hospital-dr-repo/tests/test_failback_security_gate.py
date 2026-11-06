@@ -105,7 +105,7 @@ class FailbackSecurityGateTest(unittest.TestCase):
         response = self.client.post(
             "/chatops/request",
             json={"action": "failback", "incident_id": "recovery-1", "summary": "On-Prem recovery"},
-            environ_base={"REMOTE_ADDR": "IP_REDACTED"},
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
         )
         self.assertEqual(response.status_code, 200)
         return response.get_json()["request_id"]
@@ -145,7 +145,7 @@ class FailbackSecurityGateTest(unittest.TestCase):
         self.client.post(
             "/chatops/request",
             json={"action": "failback", "incident_id": "recovery-2"},
-            environ_base={"REMOTE_ADDR": "IP_REDACTED"},
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
         )
         self.interact(blocked_request, "approve", "U_ADMIN_1")
         self.assertEqual(self.store.get(blocked_request)["status"], "PARTIALLY_APPROVED")
@@ -160,7 +160,7 @@ class FailbackSecurityGateTest(unittest.TestCase):
         response = self.client.post(
             "/chatops/request",
             json={"action": "failover", "incident_id": "incident-1"},
-            environ_base={"REMOTE_ADDR": "IP_REDACTED"},
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.store.get(response.get_json()["request_id"])["action"], "failover")

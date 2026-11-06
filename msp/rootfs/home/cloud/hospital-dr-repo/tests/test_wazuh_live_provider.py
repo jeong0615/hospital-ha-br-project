@@ -46,7 +46,7 @@ class FakeSession:
                             {
                                 "id": "001",
                                 "name": "DB_Server",
-                                "ip": "IP_REDACTED",
+                                "ip": "10.10.10.20",
                                 "status": "active",
                                 "lastKeepAlive": time.time(),
                             }
@@ -62,10 +62,10 @@ class WazuhLiveProviderTest(unittest.TestCase):
         payload = json.loads((FIXTURE_DIR / "critical-ransomware-db.json").read_text(encoding="utf-8"))
         self.session = FakeSession(payload)
         self.provider = WazuhLiveProvider(
-            api_url="https://IP_REDACTED:55000",
+            api_url="https://127.0.0.1:55000",
             api_user="readonly-api",
             api_password="runtime-api-password",
-            indexer_url="https://IP_REDACTED:9200",
+            indexer_url="https://127.0.0.1:9200",
             indexer_user="readonly-indexer",
             indexer_password="runtime-indexer-password",
             ca_cert="/tmp/wazuh-root-ca.pem",

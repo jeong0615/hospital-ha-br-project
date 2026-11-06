@@ -15,8 +15,8 @@
           - dump_db_promotion_instance_id is match('^i-[0-9a-f]{8,17}$')
           - dump_db_promotion_instance_id != 'AWS_RESOURCE_ID_REDACTED'
           - dump_db_promotion_private_ip is match('^10[.]20[.]30[.](?:[1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-4])$')
-          - dump_db_promotion_private_ip != 'IP_REDACTED'
-          - dump_db_promotion_private_ip != 'IP_REDACTED'
+          - dump_db_promotion_private_ip != '10.20.30.10'
+          - dump_db_promotion_private_ip != '192.168.200.4'
           - dump_db_promotion_data_volume_id is match('^vol-[0-9a-f]{8,32}$')
           - dump_db_promotion_stage_volume_id is match('^vol-[0-9a-f]{8,32}$')
           - dump_db_promotion_data_volume_id != dump_db_promotion_stage_volume_id
@@ -94,10 +94,10 @@
     dump_db_promotion_env_file: >-
       {{ '/etc/hospital-dr/hospital-dr-web.env' if dump_db_promotion_app_kind == 'web'
          else '/etc/hospital-dr/hospital-dr-emr.env' }}
-    dump_db_promotion_expected_source_ip: "{{ 'IP_REDACTED' if dump_db_promotion_app_kind == 'web' else 'IP_REDACTED' }}"
+    dump_db_promotion_expected_source_ip: "{{ '10.20.10.10' if dump_db_promotion_app_kind == 'web' else '10.20.20.10' }}"
     dump_db_promotion_health_url: >-
-      {{ 'http://IP_REDACTED:3000/health' if dump_db_promotion_app_kind == 'web'
-         else 'http://IP_REDACTED:3000/api/patients' }}
+      {{ 'http://127.0.0.1:3000/health' if dump_db_promotion_app_kind == 'web'
+         else 'http://127.0.0.1:3000/api/patients' }}
     dump_db_promotion_receipt_dir: "{{ dump_db_promotion_root }}/{{ dump_db_promotion_cutover_id }}"
   tasks:
     - name: Confirm the legacy PM2 app service is not active
@@ -234,7 +234,7 @@
                     len(metadata['container_id']) != 64 or
                     not isinstance(metadata.get('image_id'), str) or
                     not metadata['image_id'].startswith('sha256:') or
-                    env.get('DB_HOST') != 'IP_REDACTED' or
+                    env.get('DB_HOST') != '10.20.30.10' or
                     env.get('DB_PORT') != '3306' or
                     env.get('DB_NAME') != 'hospital_db'):
                     raise SystemExit(2)

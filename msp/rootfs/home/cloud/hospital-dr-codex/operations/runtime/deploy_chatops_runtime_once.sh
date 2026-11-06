@@ -706,7 +706,7 @@ http_ready=false
 http_attempt=0
 for ((http_attempt = 1; http_attempt <= 30; http_attempt++)); do
     if http_code="$(/usr/bin/curl --silent --max-time 1 -o /dev/null \
-        -w '%{http_code}' http://IP_REDACTED:5000/ 2>/dev/null)" \
+        -w '%{http_code}' http://127.0.0.1:5000/ 2>/dev/null)" \
         && [[ "$http_code" == 200 ]]; then
         http_ready=true
         break

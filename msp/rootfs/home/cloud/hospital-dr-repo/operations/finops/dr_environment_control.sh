@@ -34,8 +34,8 @@ fi
 DR_STATE_FAILURE_STATUS=FAILED
 DR_DOMAIN="${DR_DOMAIN:-hospital-web.pp.ua}"
 EMR_DOMAIN="${EMR_DOMAIN:-emr.hospital-web.pp.ua}"
-ONPREM_WEB_HEALTH_URL="${ONPREM_WEB_HEALTH_URL:-http://IP_REDACTED/}"
-ONPREM_EMR_HEALTH_URL="${ONPREM_EMR_HEALTH_URL:-http://IP_REDACTED/emr/}"
+ONPREM_WEB_HEALTH_URL="${ONPREM_WEB_HEALTH_URL:-http://203.0.113.10/}"
+ONPREM_EMR_HEALTH_URL="${ONPREM_EMR_HEALTH_URL:-http://203.0.113.10/emr/}"
 CF_ZONE_ID="${CF_ZONE_ID:-}"
 EMR_HEALTH_CHECK_HEADER="${EMR_HEALTH_CHECK_HEADER:-dr-emr-check-2026}"
 DNS_TX_DIR="${DR_DNS_TX_DIR:-${DR_STATE_DIR}/dns/environment-${ACTION}-${BASHPID}}"
@@ -170,10 +170,10 @@ update_inventory() {
     echo "${web_ip} ansible_connection=ssh ansible_user=ubuntu ansible_ssh_private_key_file=${SSH_KEY} ansible_ssh_common_args='${ssh_common}'"
     echo
     echo "[doc_servers]"
-    echo "IP_REDACTED ansible_connection=ssh ansible_user=ubuntu ansible_ssh_private_key_file=${SSH_KEY} ansible_ssh_common_args='${ssh_jump_common}'"
+    echo "10.20.20.10 ansible_connection=ssh ansible_user=ubuntu ansible_ssh_private_key_file=${SSH_KEY} ansible_ssh_common_args='${ssh_jump_common}'"
     echo
     echo "[db_servers]"
-    echo "IP_REDACTED ansible_connection=ssh ansible_user=ubuntu ansible_ssh_private_key_file=${SSH_KEY} ansible_ssh_common_args='${ssh_jump_common}'"
+    echo "10.20.30.10 ansible_connection=ssh ansible_user=ubuntu ansible_ssh_private_key_file=${SSH_KEY} ansible_ssh_common_args='${ssh_jump_common}'"
   } > "$temporary"
   install -m 0644 "$temporary" "$INVENTORY"
   rm -f "$temporary"
@@ -306,7 +306,7 @@ start_environment() {
   update_inventory "$web_ip"
   proxy_command="ssh -i $SSH_KEY -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o GlobalKnownHostsFile=/dev/null -o LogLevel=ERROR -W %h:%p ubuntu@$web_ip"
   wait_for_ssh_target "DR Web $web_ip" "ubuntu@$web_ip"
-  wait_for_ssh_target "DR Doc IP_REDACTED via DR Web $web_ip" "ubuntu@IP_REDACTED" -o "ProxyCommand=$proxy_command"
+  wait_for_ssh_target "DR Doc 10.20.20.10 via DR Web $web_ip" "ubuntu@10.20.20.10" -o "ProxyCommand=$proxy_command"
 
   ssh -i "$SSH_KEY" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o GlobalKnownHostsFile=/dev/null -o LogLevel=ERROR \
     "ubuntu@$web_ip" 'set -eu
@@ -317,7 +317,7 @@ health="$(sudo docker inspect --format "{{.State.Health.Status}}" hospital-dr-we
 [ "$health" = "healthy" ]' >/dev/null
   ssh -i "$SSH_KEY" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o GlobalKnownHostsFile=/dev/null -o LogLevel=ERROR \
     -o "ProxyCommand=$proxy_command" \
-    ubuntu@IP_REDACTED 'set -eu
+    ubuntu@10.20.20.10 'set -eu
 sudo systemctl start docker apache2
 running="$(sudo docker inspect --format "{{.State.Running}}" hospital-dr-emr 2>/dev/null || true)"
 if [ "$running" != "true" ]; then sudo docker start hospital-dr-emr >/dev/null; fi

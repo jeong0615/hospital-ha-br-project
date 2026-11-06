@@ -180,7 +180,7 @@ def load_settings(env_file: str | None = None) -> Settings:
         alert_url=_config_value(
             values,
             "ZABBIX_CHATOPS_ALERT_URL",
-            default="http://IP_REDACTED:5001/zabbix/alert",
+            default="http://172.18.0.1:5001/zabbix/alert",
         ),
         failover_sendto=_config_value(values, "ZABBIX_FAILOVER_SENDTO", default="slack"),
         failback_sendto=_config_value(values, "ZABBIX_FAILBACK_SENDTO", default="slack"),

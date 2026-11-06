@@ -128,7 +128,7 @@ def _validate_health_receipt(
     apps = health.get("apps")
     if not isinstance(apps, dict) or set(apps) != {"web", "emr"}:
         raise ServiceOpenError("READONLY_HEALTH_RECEIPT_MISMATCH")
-    for key, host, ip in (("web", "dr-web", "IP_REDACTED"), ("emr", "dr-doc", "IP_REDACTED")):
+    for key, host, ip in (("web", "dr-web", "10.20.10.10"), ("emr", "dr-doc", "10.20.20.10")):
         app = apps[key]
         if (
             not isinstance(app, dict) or app.get("status") != "PASS"
@@ -207,7 +207,7 @@ def _validate_db_state(
         or identity.get("port") != dbhost.SERVICE_PORT
         or status.get("port") != dbhost.SERVICE_PORT
         or status.get("datadir") != "/var/lib/mysql"
-        or set(status.get("bind_addresses", ())) != {"IP_REDACTED", expected_private_ip}
+        or set(status.get("bind_addresses", ())) != {"127.0.0.1", expected_private_ip}
         or status.get("read_only") or status.get("super_read_only")
         or db.table_count() != restore.get("table_count")
         or not dbhost._listener_addresses(db.listener_output(), expected_private_ip, service_ready=True)

@@ -771,6 +771,6 @@ app.get('/health', async (req, res) => {
 
 app.use((req, res) => res.status(404).render('pages/not-found'));
 
-app.listen(PORT, 'IP_REDACTED', () => {
+app.listen(PORT, '127.0.0.1', () => {
   console.log(`Hospital web server listening on port ${PORT}`);
 });

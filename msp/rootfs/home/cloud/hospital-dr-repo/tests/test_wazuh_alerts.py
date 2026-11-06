@@ -72,7 +72,7 @@ class WazuhAlertFlowTest(unittest.TestCase):
         return self.client.post(
             "/wazuh/alert",
             json=load_fixture(fixture),
-            environ_base={"REMOTE_ADDR": "IP_REDACTED"},
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
         )
 
     def test_low_and_high_ssh_alert_without_dr_escalation(self):
@@ -133,7 +133,7 @@ class WazuhAlertFlowTest(unittest.TestCase):
         second = self.client.post(
             "/wazuh/alert",
             json=second_payload,
-            environ_base={"REMOTE_ADDR": "IP_REDACTED"},
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
         ).get_json()
 
         self.assertTrue(second["dr_escalated"])
@@ -149,7 +149,7 @@ class WazuhAlertFlowTest(unittest.TestCase):
         failback = self.client.post(
             "/chatops/request",
             json={"action": "failback", "incident_id": "recovery-1"},
-            environ_base={"REMOTE_ADDR": "IP_REDACTED"},
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
         ).get_json()
         wazuh = self.post_alert("critical-ransomware-db.json").get_json()
 

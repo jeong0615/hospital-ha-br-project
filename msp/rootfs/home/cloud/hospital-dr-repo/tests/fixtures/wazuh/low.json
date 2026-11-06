@@ -6,7 +6,7 @@
     "description": "A low-priority system event was recorded",
     "groups": ["system"]
   },
-  "agent": {"id": "001", "name": "DB_Server", "ip": "IP_REDACTED"},
+  "agent": {"id": "001", "name": "DB_Server", "ip": "10.10.10.20"},
   "decoder": {"name": "syslog"},
   "full_log": "low priority event"
 }

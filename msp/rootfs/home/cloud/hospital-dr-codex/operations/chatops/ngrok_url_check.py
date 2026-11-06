@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 
-DEFAULT_API_URL = "http://IP_REDACTED:4040/api/tunnels"
+DEFAULT_API_URL = "http://127.0.0.1:4040/api/tunnels"
 DEFAULT_STATE_FILE = "/var/lib/hospital-dr/ngrok_public_url"
 PUBLIC_URL_RE = re.compile(r"^https?://[^/\s]+$")
 

@@ -39,7 +39,7 @@ ONPREM_DB_ROOT_USER="${ONPREM_DB_ROOT_USER:-restore}"
 ONPREM_DB_ROOT_PASS="${ONPREM_DB_ROOT_PASS:-}"
 CONFIRM="${DB_FAILBACK_CONFIRM:-}"
 SSH_KEY="${SSH_KEY:-${DR_SSH_KEY:-}}"
-DR_DB_HOST="${DR_DB_HOST:-IP_REDACTED}"
+DR_DB_HOST="${DR_DB_HOST:-10.20.30.10}"
 DR_DUMP_FILE="${DR_DUMP_FILE:-/tmp/${DB_NAME}_failback.sql}"
 REGION="${AWS_REGION:-ap-northeast-2}"
 ENABLE_NAT_FOR_DB_FAILBACK="${ENABLE_NAT_FOR_DB_FAILBACK:-true}"
@@ -112,7 +112,7 @@ refresh_inventory_for_failback() {
     echo "${web_ip} ansible_connection=ssh ansible_user=ubuntu ansible_ssh_private_key_file=${SSH_KEY} ansible_ssh_common_args='${ssh_common}'"
     echo
     echo "[doc_servers]"
-    echo "IP_REDACTED ansible_connection=ssh ansible_user=ubuntu ansible_ssh_private_key_file=${SSH_KEY} ansible_ssh_common_args='${ssh_jump_common}'"
+    echo "10.20.20.10 ansible_connection=ssh ansible_user=ubuntu ansible_ssh_private_key_file=${SSH_KEY} ansible_ssh_common_args='${ssh_jump_common}'"
     echo
     echo "[db_servers]"
     echo "${DR_DB_HOST} ansible_connection=ssh ansible_user=ubuntu ansible_ssh_private_key_file=${SSH_KEY} ansible_ssh_common_args='${ssh_jump_common}'"

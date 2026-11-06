@@ -37,7 +37,7 @@ MYSQL_PREFLIGHT_LOGIN_PATH='기존-login-path-이름' bash ./onprem_db_preflight
 
 ## 결과 읽기
 
-각 결과는 `VERIFIED`, `BLOCKED`, `UNVERIFIED`로 표시된다. 현재 Write Fence 계약 주소 `IP_REDACTED:3306`과 서버의 로컬 주소/DB 포트가 맞는지 관찰하지만, 이 계약값 자체가 실제 현장 서버 주소임을 증명하지는 않는다. `ONPREM_DB_HOST`와 `ONPREM_DB_SERVER_UUID_EXPECTED`가 사전에 확정되어 있지 않으면 해당 pin 비교는 `UNVERIFIED`다. 임의로 값을 채우지 않는다.
+각 결과는 `VERIFIED`, `BLOCKED`, `UNVERIFIED`로 표시된다. 현재 Write Fence 계약 주소 `192.168.200.4:3306`과 서버의 로컬 주소/DB 포트가 맞는지 관찰하지만, 이 계약값 자체가 실제 현장 서버 주소임을 증명하지는 않는다. `ONPREM_DB_HOST`와 `ONPREM_DB_SERVER_UUID_EXPECTED`가 사전에 확정되어 있지 않으면 해당 pin 비교는 `UNVERIFIED`다. 임의로 값을 채우지 않는다.
 
 특히 다음은 서로 다른 결과다.
 

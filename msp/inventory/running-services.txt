@@ -37,5 +37,4 @@
   unattended-upgrades.service       loaded active running Unattended Upgrades Shutdown
   upower.service                    loaded active running Daemon for power management
   user@1000.service                 loaded active running User Manager for UID 1000
-  uuidd.service                     loaded active running Daemon for generating UUIDs
   wpa_supplicant.service            loaded active running WPA supplicant

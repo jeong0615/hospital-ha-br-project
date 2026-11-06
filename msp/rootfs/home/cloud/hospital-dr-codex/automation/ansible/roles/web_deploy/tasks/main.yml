@@ -5,7 +5,7 @@
     web_domain: "{{ lookup('env', 'DR_DOMAIN') | default('hospital-web.pp.ua', true) }}"
     emr_domain: "{{ lookup('env', 'EMR_DOMAIN') | default('emr.hospital-web.pp.ua', true) }}"
     emr_health_check_header: "{{ lookup('env', 'EMR_HEALTH_CHECK_HEADER') | default('dr-emr-check-2026', true) }}"
-    emr_cf_probe_ip: "{{ lookup('env', 'CF_PROBE_SOURCE_IP') | default('IP_REDACTED', true) }}"
+    emr_cf_probe_ip: "{{ lookup('env', 'CF_PROBE_SOURCE_IP') | default('203.0.113.10', true) }}"
     emr_allowed_client_ips: "{{ lookup('env', 'EMR_ALLOWED_CLIENT_IPS') | default('', true) }}"
     web_app_dir: "/etc/hospital-dr"
     web_image_tag: "{{ lookup('env', 'DR_IMAGE_TAG') | default('', true) }}"
@@ -259,7 +259,7 @@
     docker run --detach
     --name "{{ web_container_name }}"
     --restart unless-stopped
-    --publish IP_REDACTED:3000:3000
+    --publish 127.0.0.1:3000:3000
     --env-file "{{ web_app_dir }}/hospital-dr-web.env"
     "{{ web_image_ref }}"
   when:
@@ -439,7 +439,7 @@
           location = /__hospital_dr/health {
               if ($hospital_dr_dump_probe_authorized = 0) { return 404; }
               limit_except GET { deny all; }
-              proxy_pass http://IP_REDACTED:3000/__hospital_dr/health;
+              proxy_pass http://127.0.0.1:3000/__hospital_dr/health;
               proxy_set_header X-Hospital-DR-Probe "";
               proxy_set_header Host $host;
               proxy_hide_header Set-Cookie;
@@ -458,7 +458,7 @@
 
           location / {
               include /etc/nginx/snippets/hospital-dr-dump-maintenance.inc;
-              proxy_pass http://IP_REDACTED:3000;
+              proxy_pass http://127.0.0.1:3000;
               proxy_http_version 1.1;
               proxy_set_header Host $host;
               proxy_set_header X-Real-IP $remote_addr;

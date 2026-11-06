@@ -74,7 +74,7 @@ class ChatOpsCleanupTest(unittest.TestCase):
         response = self.http.post(
             "/chatops/request",
             json={"action": action, "incident_id": incident_id, "summary": incident_id},
-            environ_base={"REMOTE_ADDR": "IP_REDACTED"},
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
         )
         self.assertEqual(response.status_code, 200)
         return self.store.get(response.get_json()["request_id"])
@@ -179,7 +179,7 @@ class ChatOpsCleanupTest(unittest.TestCase):
     def test_alert_is_tracked_separately_from_approval_requests(self):
         fixture = json.loads((FIXTURE_DIR / "low.json").read_text(encoding="utf-8"))
         response = self.http.post(
-            "/wazuh/alert", json=fixture, environ_base={"REMOTE_ADDR": "IP_REDACTED"}
+            "/wazuh/alert", json=fixture, environ_base={"REMOTE_ADDR": "127.0.0.1"}
         )
         self.assertEqual(response.status_code, 200)
         result = cleanup_old_slack_messages(self.app, now=10**10)

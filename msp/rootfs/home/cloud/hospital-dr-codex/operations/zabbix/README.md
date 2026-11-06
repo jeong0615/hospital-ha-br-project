@@ -30,17 +30,41 @@ Existing unrelated user media are preserved. Duplicate target media or
 ambiguous operations stop the run for manual review rather than deleting or
 merging live configuration.
 
+## Grafana RTO verified-success trapper record
+
+The existing `Hospital_DR_Automation` host stores the last verified successful
+execution through permanent Zabbix trapper items. Samples are timestamped at
+the corresponding run completion time and are sent through the existing
+`zabbix_sender` path; no total RTO is inferred from execution duration.
+
+| Item key | Value | Meaning |
+| --- | --- | --- |
+| `dr.rto.last_success.execution_seconds` | Numeric seconds | Verified full-failover script start to completion. Separate from total RTO. |
+| `dr.rto.last_success.total_rto_status` | Text | `NOT_MEASURED` when linked incident/detection evidence is absent. |
+| `dr.rto.last_success.total_rto_status_code` | Numeric code | `-1=NOT_MEASURED`, `0=FAIL`, `1=PASS`; Grafana maps the code to its text label. |
+| `dr.rto.last_success.request_id` | Text | Successful ChatOps request ID. |
+| `dr.rto.last_success.execution_started_at` | Unix timestamp | Full failover script start time. |
+| `dr.rto.last_success.service_recovered_at` | Unix timestamp | Request-correlated verified service recovery time. |
+| `dr.rto.last_success.execution_completed_at` | Unix timestamp | Full failover script completion time. |
+| `dr.rto.last_success.*_seconds` | Numeric seconds | Request/approval/execution stage durations. |
+| `dr.rto.last_success.evidence` | Text JSON | Request ID, timestamps, stage durations, measurement basis, RPO/RTO status, and anomaly exclusion evidence. |
+| `dr.rto.last_success.stage_summary` | Text | Compact dashboard summary of measured stages and evidence basis. |
+
+The historical `1,620,514`-second mixed-request record is retained unchanged and
+excluded from valid RTO aggregation. Missing incident/detection timestamps
+remain `NOT_MEASURED`.
+
 ## Production Failover escalation policy
 
 `operations/zabbix/configure_production_dr_triggers.py` owns the Production
 candidate that feeds `Cloud_Slack_DR_Trigger`. Its service-failure expression
 now requires all three signals from the Zabbix server host:
 
-- Web: `http://IP_REDACTED/health`, `web.test.fail` failure value `1`.
-- Doc/EMR: `http://IP_REDACTED/__hospital_dr/health`, HTTP 204,
+- Web: `http://192.168.200.3/health`, `web.test.fail` failure value `1`.
+- Doc/EMR: `http://192.168.200.5/__hospital_dr/health`, HTTP 204,
   `web.test.fail` failure value `1`. This dedicated endpoint runs only a
   non-identifying `SELECT 1`; do not use the patient API for monitoring.
-- DB: `net.tcp.service[tcp,IP_REDACTED,3306]`, failure value `0`.
+- DB: `net.tcp.service[tcp,192.168.200.4,3306]`, failure value `0`.
 
 Each probe is configured at 60-second intervals. The expression requires at
 least six failed samples in the rolling `5m` window, all observed Web/EMR

@@ -159,10 +159,10 @@ def ensure_config_include():
     return original
 def check_runtime_config():
     bind=query('SELECT @@global.bind_address')
-    if bind != ['IP_REDACTED']: raise RuntimeError('MYSQL_BIND_ADDRESS_NOT_LOCAL')
+    if bind != ['127.0.0.1']: raise RuntimeError('MYSQL_BIND_ADDRESS_NOT_LOCAL')
     defaults=run(['/usr/bin/my_print_defaults','--defaults-file=/etc/my.cnf','mysqld'],timeout=15).splitlines()
     binds=[x.split('=',1)[1] for x in defaults if x.startswith('--bind-address=')]
-    if not binds or any(x not in ('IP_REDACTED','::1') for x in binds): raise RuntimeError('MYSQL_CONFIG_BIND_NOT_LOCAL')
+    if not binds or any(x not in ('127.0.0.1','::1') for x in binds): raise RuntimeError('MYSQL_CONFIG_BIND_NOT_LOCAL')
     if not any(x.lower() in ('--mysqlx=off','--skip-mysqlx','--mysqlx=0') for x in defaults): raise RuntimeError('MYSQL_CONFIG_MYSQLX_NOT_DISABLED')
     ss=shutil.which('ss')
     if not ss: raise RuntimeError('MYSQL_LISTENER_INSPECTION_TOOL_MISSING')
@@ -170,7 +170,7 @@ def check_runtime_config():
     if inspected.returncode: raise RuntimeError('MYSQL_LISTENER_INSPECTION_FAILED')
     endpoints=[line.split()[3] for line in inspected.stdout.splitlines() if len(line.split()) >= 4 and (':3306' in line or ':33060' in line)]
     if endpoints != ['AWS_PUBLIC_IP_REDACTED:3306']: raise RuntimeError('MYSQL_LISTENER_NOT_LOOPBACK_ONLY')
-    return 'IP_REDACTED:3306'
+    return '127.0.0.1:3306'
 rpm=run(['rpm','-q','mysql-community-server'])
 if rpm != 'mysql-community-server-8.0.44-1.el9.x86_64': raise RuntimeError('MYSQL_PACKAGE_VERSION_MISMATCH')
 state=subprocess.run(['systemctl','is-active','mysqld'],text=True,capture_output=True)
@@ -179,7 +179,7 @@ if state.stdout.strip() == 'active': run(['systemctl','stop','mysqld'])
 datadir='/var/lib/mysql'
 config='/etc/my.cnf.d/99-hospital-synthetic-demo.cnf'
 backup_config='/etc/my.cnf.hospital-synthetic-demo.baseline'
-expected_config='[mysqld]\nbind-address=IP_REDACTED\nmysqlx=OFF\n'
+expected_config='[mysqld]\nbind-address=127.0.0.1\nmysqlx=OFF\n'
 if not os.path.isdir(datadir): raise RuntimeError('MYSQL_DATADIR_MISSING')
 existing_data=bool(os.listdir(datadir))
 if existing_data:
@@ -253,7 +253,7 @@ os.chown('/root/.my.cnf',0,0)
 version=run(['/usr/bin/mysql','--defaults-extra-file=/root/.my.cnf','--protocol=socket','--socket='+sockfile,'--batch','--skip-column-names','-e','SELECT VERSION()'])
 if not version.startswith('8.0.44'): raise RuntimeError('MYSQL_VERSION_UNEXPECTED')
 listener=check_runtime_config()
-with socket.create_connection(('IP_REDACTED',3306),timeout=3): pass
+with socket.create_connection(('127.0.0.1',3306),timeout=3): pass
 print(json.dumps({'phase':'MYSQL_READY','version':version,'listener':listener,'autostart':'disabled','mysql_base_config_backup':backup_config,'mysql_base_config_backup_sha256':hashlib.sha256(base_bytes).hexdigest()}))
 '''
     script = script.replace("__RESET_EXISTING__", repr(reset_existing))
@@ -325,7 +325,7 @@ def _run_demo(*, reset_existing: bool) -> dict:
         common._wait_state("running", timeout=180)
         common._wait_ssm(timeout=150)
         bootstrap = _remote_prepare(reset_existing)
-        if bootstrap.get("phase") != "MYSQL_READY" or bootstrap.get("listener") != "IP_REDACTED:3306":
+        if bootstrap.get("phase") != "MYSQL_READY" or bootstrap.get("listener") != "127.0.0.1:3306":
             raise MySQLDemoError("AWS_MYSQL_READY_CHECK_FAILED")
         baseline_hash = bootstrap.get("mysql_base_config_backup_sha256")
         if (

@@ -9,7 +9,7 @@ ARG FILEBEAT_TEMPLATE_BRANCH
 ARG FILEBEAT_CHANNEL=filebeat-oss
 ARG FILEBEAT_VERSION=7.10.2
 ARG WAZUH_FILEBEAT_MODULE
-ARG S6_VERSION="vIP_REDACTED"
+ARG S6_VERSION="v2.2.0.3"
 
 RUN yum install curl-minimal xz gnupg tar gzip openssl findutils procps -y &&\
     yum clean all

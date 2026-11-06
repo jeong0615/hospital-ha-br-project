@@ -22,7 +22,7 @@ LIVE_PATH_REASON=MSP_BEHIND_UNCONTROLLED_UPSTREAM_NAT
 
 The scripts exit before requiring endpoint values when the path is disabled.
 They remain idempotent and keep the Zabbix agent in active mode with
-`ListenIP=IP_REDACTED` when explicitly enabled in a suitable future network;
+`ListenIP=127.0.0.1` when explicitly enabled in a suitable future network;
 this repository does not open an AWS inbound agent port.
 
 The Web and EMR hosts additionally stream Docker lifecycle events to
@@ -50,14 +50,14 @@ Feature flag:    AWS_DR_WG_ENABLED=false
 ```
 
 Terraform prepares the Web security-group UDP/51821 rule, the private route
-`IP_REDACTED/24 -> Web ENI`, and the routed source-preserving path only when
+`10.251.0.0/24 -> Web ENI`, and the routed source-preserving path only when
 `aws_dr_wg_enabled` is explicitly true. The optional resources have fail-closed
 preconditions for the approved VPC, Web address, and private route table.
 The Terraform switch is passed as `TF_VAR_aws_dr_wg_enabled`; the operator
 environment example keeps both this and `AWS_DR_WG_ENABLED` false.
 The Web instance already has source/destination checking disabled for its
 gateway role. No MASQUERADE rule is part of the contract, so the expected
-MySQL source address at the On-Prem DB is `IP_REDACTED`.
+MySQL source address at the On-Prem DB is `10.20.30.10`.
 
 The explicit Ansible playbook is
 `automation/ansible/aws_dr_wireguard.yml`; it is not included by `site.yml`.
@@ -110,22 +110,22 @@ On-Prem management/DB address. The read-only diagnostic is:
 /home/cloud/hospital-dr-codex/operations/aws/aws_dr_wireguard_path_preflight.sh
 ```
 
-It reports the route to `IP_REDACTED`, the `IP_REDACTED` gateway, TCP/22,
+It reports the route to `192.168.200.4`, the `10.10.10.1` gateway, TCP/22,
 and TCP/3306 without changing a route, interface, firewall, AWS resource, or
-WireGuard service. A route through `IP_REDACTED` is the pfSense/LAN path; it is
+WireGuard service. A route through `10.10.10.1` is the pfSense/LAN path; it is
 not evidence that the legacy AWS tunnel is healthy. If the gateway itself is
 unreachable, the exact fault remains in the MSP LAN/pfSense/On-Prem segment
 until a host with network privileges can inspect the next hop.
 
 The new client must not be started while the legacy `wg-aws-hub` interface or
-its `IP_REDACTED/32` route is active. The Ansible client role checks both and
+its `10.20.30.10/32` route is active. The Ansible client role checks both and
 fails closed; it never stops the legacy tunnel automatically. After the
 management path is healthy, a separately reviewed cutover window may use:
 
 ```bash
 # On the On-Prem DB host: execute only after the cutover window is approved.
 sudo systemctl stop wg-quick@wg-aws-hub.service
-ip route show IP_REDACTED/32
+ip route show 10.20.30.10/32
 
 # From the Ansible runtime, with the temporary inventory and Python 3 path.
 PYTHONNOUSERSITE=1 ansible-playbook \
@@ -137,7 +137,7 @@ PYTHONNOUSERSITE=1 ansible-playbook \
 
 # On the On-Prem DB host: verify only the dedicated interface and route.
 sudo wg show wg-aws-dr
-ip route get IP_REDACTED
+ip route get 10.20.30.10
 ```
 
 If the dedicated path fails, roll back by stopping only the new interface and
@@ -147,7 +147,7 @@ starting the legacy service again. Do not add a competing manual route:
 sudo systemctl stop wg-quick@wg-aws-dr.service || true
 sudo systemctl start wg-quick@wg-aws-hub.service
 sudo wg show wg-aws-hub
-ip route get IP_REDACTED
+ip route get 10.20.30.10
 ```
 
 This cutover is not performed by the diagnostic or by the repository change.
@@ -215,7 +215,7 @@ state are displayed as `STANDBY`, not as an outage.
 ## Live validation record
 
 The 2026-09-29 controlled validation established that the observed
-`IP_REDACTED` address is not a controllable MSP inbound edge. It is not
+`1.209.148.228` address is not a controllable MSP inbound edge. It is not
 used as an AWS Agent endpoint. The AWS endpoint-agent paths are now explicitly
 disabled in the current runtime. CloudTrail Event History produced real
 documents in `hospital-aws-cloud-events`, and Grafana

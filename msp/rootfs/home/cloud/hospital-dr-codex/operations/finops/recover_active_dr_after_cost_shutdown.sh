@@ -20,9 +20,9 @@ REGION="${AWS_REGION:-ap-northeast-2}"
 DR_DOMAIN="${DR_DOMAIN:-hospital-web.pp.ua}"
 EMR_DOMAIN="${EMR_DOMAIN:-emr.hospital-web.pp.ua}"
 DR_WEB_EIP_EXPECTED="${DR_WEB_EIP_EXPECTED:-AWS_PUBLIC_IP_REDACTED}"
-DR_WEB_PRIVATE_IP_EXPECTED="${DR_WEB_PRIVATE_IP_EXPECTED:-IP_REDACTED}"
+DR_WEB_PRIVATE_IP_EXPECTED="${DR_WEB_PRIVATE_IP_EXPECTED:-10.20.10.10}"
 ONPREM_TUNNEL_HOST="${ONPREM_TUNNEL_HOST:-e6d3babc-8da8-45b4-85a3-a674302785fc.cfargotunnel.com}"
-ONPREM_EMR_DNS_IP_EXPECTED="${ONPREM_EMR_DNS_IP_EXPECTED:-IP_REDACTED}"
+ONPREM_EMR_DNS_IP_EXPECTED="${ONPREM_EMR_DNS_IP_EXPECTED:-1.209.148.228}"
 DR_CF_WEB_RECORD_ID_EXPECTED="${DR_CF_WEB_RECORD_ID_EXPECTED:-${CF_RECORD_ID:-4c35b40ec154fb21c92fc3795ce9d5ea}}"
 DR_CF_EMR_RECORD_ID_EXPECTED="${DR_CF_EMR_RECORD_ID_EXPECTED:-${CF_EMR_RECORD_ID:-4a4432c4e6290bcbd3dda5113ff8d560}}"
 EMR_HEALTH_CHECK_HEADER="${EMR_HEALTH_CHECK_HEADER:-dr-emr-check-2026}"
@@ -229,13 +229,13 @@ plan="$(printf '%s\n' "$inventory_json" | python3 "$plan_script" --require-runni
 mapfile -t INSTANCE_IDS < <(awk -F '\t' '{print $2}' <<< "$plan")
 web_instance_id="$(dr_ssm_discover_web_instance_id "$REGION" "$DR_WEB_PRIVATE_IP_EXPECTED")"
 dr_ssm_write_ssh_config "$REGION" "$web_instance_id" "$SSH_KEY" \
-  "$DR_SSH_KNOWN_HOSTS_FILE" "${DR_DOC_PRIVATE_IP:-IP_REDACTED}" \
-  "${DR_DB_PRIVATE_IP:-IP_REDACTED}"
+  "$DR_SSH_KNOWN_HOSTS_FILE" "${DR_DOC_PRIVATE_IP:-10.20.20.10}" \
+  "${DR_DB_PRIVATE_IP:-10.20.30.10}"
 dr_ssm_write_ansible_inventory "$INVENTORY" "$SSH_KEY" "$DR_SSH_CONFIG_FILE"
 
 dr_ssm_wait_for_ssh "DR Web instance ${web_instance_id}" dr-web 18 5
-dr_ssm_wait_for_ssh "DR Doc ${DR_DOC_PRIVATE_IP:-IP_REDACTED} through DR Web" dr-doc 18 5
-dr_ssm_wait_for_ssh "DR DB ${DR_DB_PRIVATE_IP:-IP_REDACTED} through DR Web" dr-db 18 5
+dr_ssm_wait_for_ssh "DR Doc ${DR_DOC_PRIVATE_IP:-10.20.20.10} through DR Web" dr-doc 18 5
+dr_ssm_wait_for_ssh "DR DB ${DR_DB_PRIVATE_IP:-10.20.30.10} through DR Web" dr-db 18 5
 
 dr_ssm_ssh dr-web 'set -eu
 sudo systemctl start docker nginx

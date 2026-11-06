@@ -343,7 +343,7 @@ def validate_launch_context(
                         or str(receipt.get("expected_sha256") or "").lower() != expected_sha256.lower()
                         or receipt.get("target") != {
                             "instance_id": "AWS_RESOURCE_ID_REDACTED",
-                            "private_ip": "IP_REDACTED", "port": 3306, "database": "hospital_db",
+                            "private_ip": "10.20.30.10", "port": 3306, "database": "hospital_db",
                         }
                         or receipt.get("status") != "PARTIAL_FAILURE"
                         or receipt.get("phase") != "FULL_FAILOVER"

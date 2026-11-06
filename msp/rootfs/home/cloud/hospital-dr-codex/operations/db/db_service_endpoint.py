@@ -35,7 +35,7 @@ from operations.db.isolated_dump_restore import (  # noqa: E402
     _sg_port_is_only_from_groups,
 )
 
-DEFAULT_DB_HOST = "IP_REDACTED"
+DEFAULT_DB_HOST = "10.20.30.10"
 DEFAULT_DB_PORT = 3306
 ISOLATED_INSTANCE_NAME = "Hospital-DR-Dump-Restore-Isolated"
 ISOLATED_INSTANCE_ROLE = "isolated-dump-restore-validation"
@@ -107,7 +107,7 @@ def validate_isolated_aws_identity(
         or address.is_unspecified
         or address.is_reserved
         or private_ip in PROTECTED_PRIVATE_IPS
-        or address not in ipaddress.ip_network("IP_REDACTED/24")
+        or address not in ipaddress.ip_network("10.20.30.0/24")
         or private_ip == DEFAULT_DB_HOST
     ):
         raise EndpointError("ISOLATED_PRIVATE_IP_INVALID_OR_PROTECTED")

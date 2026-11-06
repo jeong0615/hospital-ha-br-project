@@ -20,7 +20,7 @@ async function main() {
   if (
     !config ||
     !/^10\.20\.30\.(?:[1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-4])$/.test(config.host) ||
-    config.host === "IP_REDACTED" ||
+    config.host === "10.20.30.10" ||
     config.port !== 3307 ||
     config.user !== "hospital_dr_service" ||
     config.database !== "hospital_db" ||

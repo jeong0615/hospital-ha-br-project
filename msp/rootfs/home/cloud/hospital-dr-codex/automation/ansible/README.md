@@ -112,7 +112,7 @@ by `site.yml`. It is disabled unless `AWS_DR_WG_ENABLED=true` is supplied in
 the live operator environment. The playbook configures only `wg-aws-dr`:
 
 - AWS Web gateway: `AWS_PUBLIC_IP_REDACTED/24`, UDP `51821`;
-- On-Prem DB client: `IP_REDACTED/32`, `PersistentKeepalive=25`;
+- On-Prem DB client: `10.251.0.2/32`, `PersistentKeepalive=25`;
 - AWS DB route target: `AWS_PUBLIC_IP_REDACTED/32`;
 - no `wg0`, legacy `10.250.x.x`, MSP `192.168.200.x`, or MASQUERADE rule.
 

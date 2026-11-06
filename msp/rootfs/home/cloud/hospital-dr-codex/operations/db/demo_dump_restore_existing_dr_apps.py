@@ -292,7 +292,7 @@ def _request_lock(request_dir: Path):
 
 def _app_remote_script(spec: Mapping[str, str], *, start: bool) -> str:
     container, proxy = spec["container"], spec["proxy"]
-    health_url = "http://IP_REDACTED:3000/__hospital_dr/health"
+    health_url = "http://127.0.0.1:3000/__hospital_dr/health"
     before = (
         f'''test "$(docker inspect --format '{{{{.State.Running}}}}|{{{{.HostConfig.RestartPolicy.Name}}}}' "{container}")" = 'false|no'
 '''
@@ -333,14 +333,14 @@ $1 == "DB_PORT" {{ port=$2; pc++ }}
 END {{ if (hc != 1 || pc != 1 || host != "{DB_HOST}" || port != "{DB_PORT}") exit 1; print "DB_ENDPOINT_PASS" }}')"
 test "$endpoint_check" = DB_ENDPOINT_PASS
 binding="$(docker inspect --format '{binding_template}' "$container")"
-test "$binding" = '3000/tcp=IP_REDACTED:3000 '
+test "$binding" = '3000/tcp=127.0.0.1:3000 '
 {before}{start_command}
 {wait_block}test "$(docker inspect --format '{running_template}' "$container")" = 'true|no|healthy'
 test "$http_status" = 204
 ! systemctl is-active --quiet "$proxy"
 test "$(systemctl is-enabled "$proxy" 2>/dev/null || true)" = disabled
 test -z "$(ss -H -ltn '( sport = :80 or sport = :443 )')"
-test "$(docker inspect --format '{binding_template}' "$container")" = '3000/tcp=IP_REDACTED:3000 '
+test "$(docker inspect --format '{binding_template}' "$container")" = '3000/tcp=127.0.0.1:3000 '
 printf 'APP_{spec['kind'].upper()}_READY\\n'
 '''
 

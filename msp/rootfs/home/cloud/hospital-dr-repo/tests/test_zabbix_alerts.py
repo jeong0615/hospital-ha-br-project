@@ -57,7 +57,7 @@ class ZabbixAlertFlowTest(unittest.TestCase):
     def tearDown(self):
         self.temp_dir.cleanup()
 
-    def post_alert(self, payload=None, remote_addr="IP_REDACTED"):
+    def post_alert(self, payload=None, remote_addr="127.0.0.1"):
         return self.client.post(
             "/zabbix/alert",
             json=payload or self.fixture,
@@ -109,7 +109,7 @@ class ZabbixAlertFlowTest(unittest.TestCase):
         self.assertEqual(len(self.app.extensions["chatops_audit"].candidates(now=10**10, ttl_seconds=0)), 0)
 
     def test_external_zabbix_request_is_rejected(self):
-        response = self.post_alert(remote_addr="IP_REDACTED")
+        response = self.post_alert(remote_addr="172.18.0.5")
         self.assertEqual(response.status_code, 403)
         self.assertEqual(len(self.alert.posts), 0)
 

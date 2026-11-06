@@ -17,7 +17,7 @@ dr_ssm_require_tools() {
 
 dr_ssm_discover_web_instance_id() {
     local region="${1:-${AWS_REGION:-ap-northeast-2}}"
-    local private_ip="${2:-${DR_WEB_PRIVATE_IP_EXPECTED:-IP_REDACTED}}"
+    local private_ip="${2:-${DR_WEB_PRIVATE_IP_EXPECTED:-10.20.10.10}}"
     local response
 
     if ! response="$(aws ec2 describe-instances \

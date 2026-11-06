@@ -17,6 +17,6 @@ app.use(express.static('.'));
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, 'IP_REDACTED', () => {
-    console.log(`EMR 서버가 http://IP_REDACTED:${PORT} 에서 실행 중입니다.`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`EMR 서버가 http://0.0.0.0:${PORT} 에서 실행 중입니다.`);
 });

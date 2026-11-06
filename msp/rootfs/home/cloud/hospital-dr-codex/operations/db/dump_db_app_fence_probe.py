@@ -17,8 +17,8 @@ from typing import Callable
 
 CUTOVER_ROOT = Path("/var/lib/hospital-dr/db-endpoint-cutovers")
 APP_CONTRACT = {
-    "web": ("hospital-dr-web", "dr-web", "IP_REDACTED"),
-    "emr": ("hospital-dr-emr", "dr-doc", "IP_REDACTED"),
+    "web": ("hospital-dr-web", "dr-web", "10.20.10.10"),
+    "emr": ("hospital-dr-emr", "dr-doc", "10.20.20.10"),
 }
 SAFE_TIMERS = {
     "apt-daily.timer", "apt-daily-upgrade.timer", "fstrim.timer",
@@ -124,7 +124,7 @@ def validate_app_fence(
         or metadata.get("was_running") is not True
         or not HEX64.fullmatch(original_id)
         or not re.fullmatch(r"sha256:[0-9a-f]{64}", image_id)
-        or before != {"DB_HOST": "IP_REDACTED", "DB_PORT": "3306", "DB_NAME": "hospital_db"}
+        or before != {"DB_HOST": "10.20.30.10", "DB_PORT": "3306", "DB_NAME": "hospital_db"}
         or current["DB_HOST"] != isolated_private_ip
         or current["DB_PORT"] != "3307"
         or current["DB_USER"] != "hospital_dr_service"
@@ -388,7 +388,7 @@ def validate_active_readonly_app(
         or metadata.get("was_running") is not True
         or not HEX64.fullmatch(str(metadata.get("container_id", "")))
         or not re.fullmatch(r"sha256:[0-9a-f]{64}", str(metadata.get("image_id", "")))
-        or before != {"DB_HOST": "IP_REDACTED", "DB_PORT": "3306", "DB_NAME": "hospital_db"}
+        or before != {"DB_HOST": "10.20.30.10", "DB_PORT": "3306", "DB_NAME": "hospital_db"}
         or current["DB_HOST"] != isolated_private_ip
         or current["DB_PORT"] != "3307"
         or current["DB_USER"] != "hospital_dr_service"
@@ -409,7 +409,7 @@ def validate_active_readonly_app(
         bindings = json.loads(container[5])
     except (TypeError, ValueError, json.JSONDecodeError) as exc:
         raise AppFenceError("APP_CONTAINER_PORT_BINDING_INVALID") from exc
-    expected_bindings = {"3000/tcp": [{"HostIp": "IP_REDACTED", "HostPort": "3000"}]}
+    expected_bindings = {"3000/tcp": [{"HostIp": "127.0.0.1", "HostPort": "3000"}]}
     if bindings != expected_bindings or active_container_text.splitlines() != [container_name]:
         raise AppFenceError("APP_CONTAINER_EXTERNALLY_PUBLISHED")
     if len(rollback) != 2 or rollback != [metadata["container_id"], "false"]:
@@ -467,7 +467,7 @@ def _loopback_listener_only(output: str) -> bool:
         if len(fields) < 5 or fields[0] != "LISTEN":
             return False
         local = fields[3]
-        if local not in {"IP_REDACTED:3000", "[::1]:3000"}:
+        if local not in {"127.0.0.1:3000", "[::1]:3000"}:
             return False
     return True
 
@@ -672,10 +672,10 @@ def _validate_service_open_stopped_app(
         or fields[1] != "false" or fields[2] != normalized
         or fields[3] != "no" or fields[4] not in {"healthy", "none"}
         or fields[0] == metadata["container_id"]
-        or bindings != {"3000/tcp": [{"HostIp": "IP_REDACTED", "HostPort": "3000"}]}
+        or bindings != {"3000/tcp": [{"HostIp": "127.0.0.1", "HostPort": "3000"}]}
         or active_container_text.splitlines()
         or len(rollback) != 2 or rollback != [metadata["container_id"], "false"]
-        or before != {"DB_HOST": "IP_REDACTED", "DB_PORT": "3306", "DB_NAME": "hospital_db"}
+        or before != {"DB_HOST": "10.20.30.10", "DB_PORT": "3306", "DB_NAME": "hospital_db"}
         or current["DB_HOST"] != isolated_private_ip or current["DB_PORT"] != "3307"
         or current["DB_USER"] != "hospital_dr_service" or current["DB_NAME"] != "hospital_db"
     ):

@@ -18,7 +18,7 @@ services:
       - ../../operations/chatops/send_slack.sh:/usr/lib/zabbix/alertscripts/send_slack.sh:ro
       - ../../operations/chatops/send_failback.sh:/usr/lib/zabbix/alertscripts/send_failback.sh:ro
     environment:
-      CHATOPS_REQUEST_URL: http://IP_REDACTED:5001/chatops/request
+      CHATOPS_REQUEST_URL: http://172.18.0.1:5001/chatops/request
     env_file:
       - .env_db_pgsql
       - .env_srv

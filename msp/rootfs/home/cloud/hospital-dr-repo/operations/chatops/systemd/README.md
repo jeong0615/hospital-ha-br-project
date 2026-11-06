@@ -1,6 +1,6 @@
 # ChatOps HTTPS callback preparation
 
-These units keep ChatOps on `IP_REDACTED:5000` and run a separate
+These units keep ChatOps on `127.0.0.1:5000` and run a separate
 Cloudflare Tunnel connector. They do not contain a tunnel token or any
 application Secret.
 
@@ -43,7 +43,7 @@ Create one Published application route:
 
 ```text
 Hostname: chatops.hospital-web.pp.ua
-Service:  http://IP_REDACTED:5000
+Service:  http://127.0.0.1:5000
 ```
 
 Do not change `hospital-web.pp.ua`. Cloudflare should create the DNS route

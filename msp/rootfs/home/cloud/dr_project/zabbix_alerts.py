@@ -28,7 +28,7 @@ DEMO_FAILOVER_HOST_PROFILES = {
     "catalyst_3550_series": "snmp",
     "zabbix_server": "db_tcp",
 }
-DB_TCP_ITEM_KEY = "net.tcp.service[tcp,IP_REDACTED,3306]"
+DB_TCP_ITEM_KEY = "net.tcp.service[tcp,192.168.200.4,3306]"
 NON_DR_METRIC_MARKERS = (
     "cpu",
     "processor",
@@ -212,7 +212,7 @@ def poll_failover_condition(app):
             hashlib.sha256,
         ).hexdigest()
         request = urllib.request.Request(
-            str(app.config.get("ZABBIX_CHATOPS_REQUEST_URL") or "http://IP_REDACTED:5000/chatops/request"),
+            str(app.config.get("ZABBIX_CHATOPS_REQUEST_URL") or "http://127.0.0.1:5000/chatops/request"),
             data=body,
             headers={
                 "Content-Type": "application/json",

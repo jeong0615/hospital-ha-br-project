@@ -212,7 +212,7 @@ def validate_dump_app_ingress_contract(
             ipv6 = rule.get("Ipv6Ranges", [])
             sources = {str(item.get("GroupId", "")) for item in rule.get("UserIdGroupPairs", [])}
             prefixes = rule.get("PrefixListIds", [])
-            if any(value == "IP_REDACTED/0" for value in raw_ipv4):
+            if any(value == "0.0.0.0/0" for value in raw_ipv4):
                 raise PublicReadinessError("DR_APP_PUBLIC_INGRESS_PRESENT")
             if ipv6:
                 # No IPv6 ingress is part of the approved DR public path.
@@ -224,7 +224,7 @@ def validate_dump_app_ingress_contract(
                 try:
                     if any(
                         not ipaddress.ip_network(cidr, strict=False).subnet_of(
-                            ipaddress.ip_network("IP_REDACTED/16")
+                            ipaddress.ip_network("10.20.0.0/16")
                         )
                         for cidr in ipv4
                     ):
@@ -271,10 +271,10 @@ def validate_dump_app_ingress_contract(
                 if not zabbix_ipv4_cidrs or not networks.issubset(set(zabbix_ipv4_cidrs)):
                     raise PublicReadinessError("DR_WEB_ZABBIX_SOURCE_NOT_APPROVED")
             elif port_key == ("tcp", 3306):
-                if not wireguard_enabled or networks != {"IP_REDACTED/32"}:
+                if not wireguard_enabled or networks != {"10.20.30.10/32"}:
                     raise PublicReadinessError("DR_WEB_DB_INGRESS_UNAPPROVED")
             elif port_key == ("udp", 51820):
-                if networks != {"IP_REDACTED/32"}:
+                if networks != {"1.209.148.228/32"}:
                     raise PublicReadinessError("DR_WEB_LEGACY_WG_SOURCE_UNAPPROVED")
             elif port_key == ("udp", 51821):
                 if not wireguard_enabled or not set(wireguard_peer_ipv4_cidrs) or not networks.issubset(set(wireguard_peer_ipv4_cidrs)):

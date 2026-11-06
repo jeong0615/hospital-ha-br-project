@@ -6,8 +6,8 @@
     "description": "Multiple SSH authentication failures",
     "groups": ["authentication_failed", "sshd"]
   },
-  "agent": {"id": "002", "name": "Web_Server", "ip": "IP_REDACTED"},
+  "agent": {"id": "002", "name": "Web_Server", "ip": "10.10.10.21"},
   "decoder": {"name": "sshd"},
-  "data": {"srcip": "IP_REDACTED"},
+  "data": {"srcip": "198.51.100.20"},
   "full_log": "authentication failures from a remote source"
 }

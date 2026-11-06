@@ -28,8 +28,8 @@ services:
       - ../../operations/runtime/dr_state.sh:/usr/lib/zabbix/dr_state.sh:ro
       - /var/lib/hospital-dr:/var/lib/hospital-dr:rw
     environment:
-      CHATOPS_REQUEST_URL: http://IP_REDACTED:5001/chatops/request
-      NETWORK_DR_HEALTH_URL: http://IP_REDACTED:5001/chatops/network-health
+      CHATOPS_REQUEST_URL: http://172.18.0.1:5001/chatops/request
+      NETWORK_DR_HEALTH_URL: http://172.18.0.1:5001/chatops/network-health
       DR_RUNTIME_PATHS: /usr/lib/zabbix/runtime_paths.sh
       DR_STATE_DIR: /var/lib/hospital-dr
       DR_STATE_FILE: /var/lib/hospital-dr/dr_state

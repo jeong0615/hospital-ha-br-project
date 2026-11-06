@@ -39,7 +39,7 @@ VPC_CIDR = "AWS_PUBLIC_IP_REDACTED/16"
 WEB_ID = "AWS_RESOURCE_ID_REDACTED"
 WEB_ENI = "AWS_RESOURCE_ID_REDACTED"
 WEB_SUBNET = "AWS_RESOURCE_ID_REDACTED"
-WEB_PRIVATE_IP = "IP_REDACTED"
+WEB_PRIVATE_IP = "10.20.10.10"
 WEB_EIP = "AWS_PUBLIC_IP_REDACTED"
 WEB_ORIGINAL_SG = "AWS_RESOURCE_ID_REDACTED"
 DB_SG = "AWS_RESOURCE_ID_REDACTED"
@@ -311,7 +311,7 @@ def verify_exact_web_eni(eni: dict[str, Any]) -> bool:
 
 
 def classify_nat_routes(route_table: dict[str, Any], web_eni_id: str = WEB_ENI) -> str:
-    required = {"IP_REDACTED/0", "IP_REDACTED/24"}
+    required = {"0.0.0.0/0", "10.251.0.0/24"}
     routes = {item.get("DestinationCidrBlock"): item for item in route_table.get("Routes", []) if item.get("DestinationCidrBlock") in required}
     if set(routes) != required or any(item.get("NetworkInterfaceId") != web_eni_id for item in routes.values()):
         return "wrong-target-or-missing"
@@ -566,7 +566,7 @@ def inspect_environment(aws: AwsCli) -> dict[str, Any]:
     report["resources"]["web_sg_egress_rule_count"] = sum(len(row.get("IpPermissionsEgress", [])) for row in web_sg)
     report["resources"]["web_sg_ingress_rule_count"] = sum(len(row.get("IpPermissions", [])) for row in web_sg)
     report["resources"]["web_sg_current_unrestricted_egress"] = any(
-        rule.get("IpProtocol") == "-1" and any(item.get("CidrIp") == "IP_REDACTED/0" for item in rule.get("IpRanges", []))
+        rule.get("IpProtocol") == "-1" and any(item.get("CidrIp") == "0.0.0.0/0" for item in rule.get("IpRanges", []))
         for group in web_sg for rule in group.get("IpPermissionsEgress", [])
     )
     report["resources"]["web_sg_rule_snapshot"] = [

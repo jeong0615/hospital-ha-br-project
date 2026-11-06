@@ -6,7 +6,7 @@
   "aws_region": "ap-northeast-2",
   "aws_instance_id": "AWS_RESOURCE_ID_REDACTED",
   "vpc_id": "AWS_RESOURCE_ID_REDACTED",
-  "source_mysql_version": "8.0.46-0ubuntuIP_REDACTED",
+  "source_mysql_version": "8.0.46-0ubuntu0.22.04.4",
   "aws_mysql_version": "8.0.44",
   "sequence": [
     "temporary source-role MySQL created synthetic A",

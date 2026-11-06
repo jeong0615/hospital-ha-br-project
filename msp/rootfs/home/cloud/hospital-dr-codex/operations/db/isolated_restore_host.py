@@ -19,7 +19,7 @@ from pathlib import Path
 
 
 PRODUCTION_DB_INSTANCE_ID = "AWS_RESOURCE_ID_REDACTED"
-PROTECTED_PRIVATE_IPS = {"IP_REDACTED", "IP_REDACTED"}
+PROTECTED_PRIVATE_IPS = {"10.20.30.10", "192.168.200.4"}
 BACKUP_ID_RE = re.compile(r"db_backup_[0-9]{8}_[0-9]{4,6}\.sql\.gz\.enc\Z")
 SHA256_RE = re.compile(r"[0-9a-f]{64}\Z")
 
@@ -102,7 +102,7 @@ def _metadata_get(url: str, token: str | None = None, method: str = "GET") -> st
 
 
 def read_instance_metadata() -> dict[str, str]:
-    base = "http://IP_REDACTED/latest"
+    base = "http://169.254.169.254/latest"
     request = urllib.request.Request(
         f"{base}/api/token",
         headers={"X-aws-ec2-metadata-token-ttl-seconds": "60"},
@@ -234,7 +234,7 @@ class SystemMySQLBackend:
         port, datadir, bind_address, read_only, super_read_only = fields
         if port != "3307" or os.path.realpath(datadir) != "/var/lib/mysql":
             raise RestoreError("ISOLATED_MYSQL_RUNTIME_MISMATCH")
-        if bind_address not in {"IP_REDACTED", "localhost"}:
+        if bind_address not in {"127.0.0.1", "localhost"}:
             raise RestoreError("ISOLATED_MYSQL_NOT_LOOPBACK_ONLY")
         if read_only != "0" or super_read_only != "0":
             raise RestoreError("ISOLATED_MYSQL_NOT_WRITABLE")
@@ -250,7 +250,7 @@ class SystemMySQLBackend:
             if local_address.endswith(":3306"):
                 raise RestoreError("UNEXPECTED_MYSQL_3306_LISTENER")
             if local_address not in {
-                "IP_REDACTED:3307", "[::1]:3307", "IP_REDACTED:33060", "[::1]:33060"
+                "127.0.0.1:3307", "[::1]:3307", "127.0.0.1:33060", "[::1]:33060"
             }:
                 raise RestoreError("ISOLATED_MYSQL_LISTENER_EXPOSED")
 

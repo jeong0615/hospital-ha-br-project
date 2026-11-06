@@ -41,7 +41,7 @@ server-id=${SOURCE_SERVER_ID}
 log_bin=mysql-bin
 binlog_format=ROW
 binlog_do_db=${TARGET_DB}
-bind-address=IP_REDACTED
+bind-address=0.0.0.0
 EOF
 
 sudo systemctl restart mysql

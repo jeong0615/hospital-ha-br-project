@@ -163,9 +163,9 @@ def is_approved_nat_ingress(rule):
     if str(rule.get("from_port", "")) != "0" or str(rule.get("to_port", "")) != "0":
         return False
     if sorted(rule.get("cidr_blocks") or []) != [
-        "IP_REDACTED/24",
-        "IP_REDACTED/24",
-        "IP_REDACTED/24",
+        "10.20.10.0/24",
+        "10.20.20.0/24",
+        "10.20.30.0/24",
     ]:
         return False
     for key in ("ipv6_cidr_blocks", "prefix_list_ids", "security_groups"):
@@ -216,9 +216,9 @@ if sg_changes:
         print("NAT INSTANCE PLAN ERROR: Web security-group change is not the approved NAT ingress addition.", file=sys.stderr)
         raise SystemExit(1)
     protected_rules = (
-        ("udp", 51820, "IP_REDACTED/32"),
-        ("udp", 51821, "IP_REDACTED/32"),
-        ("tcp", 3306, "IP_REDACTED/32"),
+        ("udp", 51820, "1.209.148.228/32"),
+        ("udp", 51821, "1.209.148.228/32"),
+        ("tcp", 3306, "10.20.30.10/32"),
     )
     for protocol, port, cidr in protected_rules:
         if not any(rule_matches(rule, protocol, port, cidr) for rule in before_rules) \

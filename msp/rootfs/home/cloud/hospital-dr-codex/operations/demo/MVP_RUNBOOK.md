@@ -39,7 +39,7 @@
 
 ### On-Prem DB 주소·신원 및 학교 사용 시간
 
-- 저장소의 현재 모니터링/Production 계약은 DB TCP probe를 **`IP_REDACTED:3306`**으로 둔다. 같은 정책 파일에서 Web은 `.3`, EMR/Doc은 `.5`다. Dump 보호 코드도 `.4`를 기존 On-Prem DB 대상으로 고정한다. 이는 코드가 기대하는 주소이지, 실제 On-Prem 호스트에 접속해 확인한 결과는 아니다.
+- 저장소의 현재 모니터링/Production 계약은 DB TCP probe를 **`192.168.200.4:3306`**으로 둔다. 같은 정책 파일에서 Web은 `.3`, EMR/Doc은 `.5`다. Dump 보호 코드도 `.4`를 기존 On-Prem DB 대상으로 고정한다. 이는 코드가 기대하는 주소이지, 실제 On-Prem 호스트에 접속해 확인한 결과는 아니다.
 - `operations/chatops/.env.example`의 `ONPREM_DB_HOST`와 `ONPREM_DB_SERVER_UUID_EXPECTED`는 비어 있고 `automation/ansible/inventory.example.ini`는 placeholder만 담는다. 실제 inventory/Secret이나 DB에 접근하지 않았으므로 실접속 주소, 서버 UUID, `@@server_id`는 **미확인**이다. `AWS_PUBLIC_IP_REDACTED:3306`은 폐기된 public/NAT-era 경로로 문서화되어 있고, `AWS_PUBLIC_IP_REDACTED:3306`은 기본 비활성인 별도 AWS DR WireGuard/NR 후보다. 두 값을 현재 On-Prem DB 접속 주소로 간주하지 않는다.
 - 현장 DB 담당자는 승인된 On-Prem 콘솔 또는 기존 인증 경로에서 다음 읽기 전용 SQL을 실행해 결과와 조회 시각을 기록한다. 환자 데이터나 인증정보는 수집하지 않으며 비밀번호를 명령행 인자에 넣지 않는다.
 

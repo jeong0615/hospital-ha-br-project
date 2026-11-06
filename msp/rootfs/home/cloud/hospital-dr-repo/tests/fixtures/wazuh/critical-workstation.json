@@ -6,7 +6,7 @@
     "description": "Critical policy event on a workstation",
     "groups": ["policy"]
   },
-  "agent": {"id": "004", "name": "Office_Workstation", "ip": "IP_REDACTED"},
+  "agent": {"id": "004", "name": "Office_Workstation", "ip": "10.10.10.40"},
   "decoder": {"name": "audit"},
   "full_log": "critical event without service impact"
 }

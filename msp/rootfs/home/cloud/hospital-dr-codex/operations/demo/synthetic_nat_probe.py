@@ -707,7 +707,7 @@ def read_only_preflight(outputs: dict[str, Any]) -> dict[str, Any]:
         reasons.append("PROBE_ROUTE_TABLE_IDENTITY_MISMATCH")
     route_contract = {
         (outputs["vpc_cidr"], "local", "active"),
-        ("IP_REDACTED/0", outputs["internet_gateway_id"], "active"),
+        ("0.0.0.0/0", outputs["internet_gateway_id"], "active"),
     }
     observed_routes = {
         (route.get("DestinationCidrBlock", route.get("DestinationIpv6CidrBlock", "")),

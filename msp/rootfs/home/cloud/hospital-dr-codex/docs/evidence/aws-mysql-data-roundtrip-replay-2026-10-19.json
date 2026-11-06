@@ -8,11 +8,11 @@
   "vpc_id": "AWS_RESOURCE_ID_REDACTED",
   "probe_replay_command": "python3 operations/demo/aws_mysql_data_roundtrip.py --confirm-synthetic-mysql-demo --reset-existing-synthetic-db",
   "mysql": {
-    "source_version": "8.0.46-0ubuntuIP_REDACTED",
+    "source_version": "8.0.46-0ubuntu0.22.04.4",
     "aws_version": "8.0.44",
     "guest_config": "loopback-only bind; mysqlx disabled; autostart disabled",
     "config_include_issue_fixed": "The AL2023 main config did not include /etc/my.cnf.d, so the existing synthetic bind fragment was ignored. The runner now backs up the original /etc/my.cnf with mode 0600, includes the expected fragment, and validates effective config and live listener before reset.",
-    "listener": "IP_REDACTED:3306"
+    "listener": "127.0.0.1:3306"
   },
   "sequence": [
     "verified existing AWS rows were restricted to the expected synthetic A/B dataset before reset",

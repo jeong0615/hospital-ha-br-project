@@ -324,7 +324,7 @@ sudo -v && sudo -n true && printf 'SUDO_AUTH=OK\n'
     body='{"action":"failover","source":"zabbix_test_action","test_mode":true}'
     stamp=$(date +%s)
     code=$(curl -sS -o /dev/null -w '%{http_code}' \
-      -X POST http://IP_REDACTED:5000/chatops/request \
+      -X POST http://127.0.0.1:5000/chatops/request \
       -H 'Content-Type: application/json' \
       -H "X-ChatOps-Zabbix-Timestamp: $stamp" \
       -H "X-ChatOps-Zabbix-Signature: v1=$(printf '0%.0s' {1..64})" \

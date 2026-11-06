@@ -206,7 +206,7 @@
     docker run --detach
     --name "{{ emr_container_name }}"
     --restart unless-stopped
-    --publish IP_REDACTED:3000:3000
+    --publish 127.0.0.1:3000:3000
     --env-file "{{ emr_app_dir }}/hospital-dr-emr.env"
     "{{ emr_image_ref }}"
   when:
@@ -238,7 +238,7 @@
 
 - name: "Verify EMR application can read the DR database / EMR 애플리케이션 DB read 검증"
   uri:
-    url: http://IP_REDACTED:3000/api/patients
+    url: http://127.0.0.1:3000/api/patients
     method: GET
     status_code: 200
     timeout: 10
@@ -259,8 +259,8 @@
       <VirtualHost *:80>
           ServerName hospital-emr.local
           ProxyPreserveHost On
-          ProxyPass / http://IP_REDACTED:3000/
-          ProxyPassReverse / http://IP_REDACTED:3000/
+          ProxyPass / http://127.0.0.1:3000/
+          ProxyPassReverse / http://127.0.0.1:3000/
           ErrorLog ${APACHE_LOG_DIR}/hospital-emr-error.log
           CustomLog ${APACHE_LOG_DIR}/hospital-emr-access.log combined
       </VirtualHost>
@@ -302,7 +302,7 @@
 
 - name: "Verify Apache reverse proxy health / Apache reverse proxy health 검증"
   uri:
-    url: http://IP_REDACTED/
+    url: http://127.0.0.1/
     method: GET
     status_code: 200
     timeout: 10

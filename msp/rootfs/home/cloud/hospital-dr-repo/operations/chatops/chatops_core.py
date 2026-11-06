@@ -1222,7 +1222,7 @@ def create_app(default_state_db, default_secret_file, default_script_root, test_
 
     @app.post("/chatops/request")
     def create_request():
-        if request.remote_addr not in ("IP_REDACTED", "::1") and not app.config.get("ALLOW_REMOTE_REQUEST_CREATION", False):
+        if request.remote_addr not in ("127.0.0.1", "::1") and not app.config.get("ALLOW_REMOTE_REQUEST_CREATION", False):
             return jsonify({"error": "request creation is restricted to MSP localhost"}), 403
         if not admin_ids:
             return jsonify({
@@ -1271,7 +1271,7 @@ def create_app(default_state_db, default_secret_file, default_script_root, test_
 
     @app.post("/wazuh/alert")
     def wazuh_alert():
-        if request.remote_addr not in ("IP_REDACTED", "::1"):
+        if request.remote_addr not in ("127.0.0.1", "::1"):
             return jsonify({"error": "Wazuh alert ingestion is restricted to MSP localhost"}), 403
         payload = request.get_json(silent=True)
         if not isinstance(payload, dict):
@@ -1285,7 +1285,7 @@ def create_app(default_state_db, default_secret_file, default_script_root, test_
 
     @app.post("/zabbix/alert")
     def zabbix_alert():
-        if request.remote_addr not in ("IP_REDACTED", "::1"):
+        if request.remote_addr not in ("127.0.0.1", "::1"):
             return jsonify({"error": "Zabbix alert ingestion is restricted to MSP localhost"}), 403
         payload = request.get_json(silent=True)
         if not isinstance(payload, dict):

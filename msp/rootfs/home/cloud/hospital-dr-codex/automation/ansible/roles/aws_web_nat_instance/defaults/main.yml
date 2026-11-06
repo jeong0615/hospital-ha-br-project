@@ -10,13 +10,13 @@ aws_web_nat_instance_expected_eni: AWS_RESOURCE_ID_REDACTED
 aws_web_nat_instance_uplink_interface: "{{ ansible_default_ipv4.interface | default('eth0') }}"
 aws_web_nat_instance_interface: wg-aws-dr
 aws_web_nat_instance_private_cidrs:
-  - IP_REDACTED/24
-  - IP_REDACTED/24
-  - IP_REDACTED/24
+  - 10.20.10.0/24
+  - 10.20.20.0/24
+  - 10.20.30.0/24
 aws_web_nat_instance_excluded_destinations:
-  - IP_REDACTED/16
-  - IP_REDACTED/24
-  - IP_REDACTED/24
+  - 10.20.0.0/16
+  - 10.251.0.0/24
+  - 192.168.200.0/24
 aws_web_nat_instance_forward_chain: HOSPITAL-DR-NAT-FWD
 aws_web_nat_instance_postrouting_chain: HOSPITAL-DR-NAT-POSTROUTING
 aws_web_nat_instance_script: /usr/local/sbin/hospital-dr-web-nat-instance

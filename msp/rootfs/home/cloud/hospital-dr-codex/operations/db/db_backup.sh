@@ -77,7 +77,7 @@ S3_OBJECT_PREFIX="${S3_BACKUP_PREFIX:-mysql/hospital_db}"
 
 # 2. 클라우드 서버 전송 정보
 CLOUD_USER="${CLOUD_USER:-cloud}"
-CLOUD_IP="${CLOUD_IP:-IP_REDACTED}"
+CLOUD_IP="${CLOUD_IP:-192.0.2.20}"
 CLOUD_DEST="${CLOUD_DEST:-/var/lib/hospital-dr/db_backups/}"
 
 if [ -z "$ENCRYPTION_KEY" ]; then

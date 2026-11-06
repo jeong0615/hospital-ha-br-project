@@ -27,7 +27,7 @@ EXPECTED_RULE = (
 PREPARED_MARKER_PREFIX = "hospital-dr-dump-readiness"
 SERVICE_MARKER_PREFIX = "hospital-dr-dump-service"
 SERVICE_AUTH_ROOT = "/var/lib/hospital-dr-dump-service-fence"
-WEB_PRIVATE_IP = "IP_REDACTED"
+WEB_PRIVATE_IP = "10.20.10.10"
 STRICT_DROP_RULE = EXPECTED_RULE
 
 

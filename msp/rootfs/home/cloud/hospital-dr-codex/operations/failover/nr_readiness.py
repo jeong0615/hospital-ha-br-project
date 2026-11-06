@@ -20,7 +20,7 @@ class NRStatusError(ValueError):
 
 DUMP_TARGET = {
     "instance_id": "AWS_RESOURCE_ID_REDACTED",
-    "private_ip": "IP_REDACTED",
+    "private_ip": "10.20.30.10",
     "port": 3306,
     "database": "hospital_db",
 }

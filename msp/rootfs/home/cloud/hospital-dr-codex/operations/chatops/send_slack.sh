@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-CHATOPS_REQUEST_URL="${CHATOPS_REQUEST_URL:-http://IP_REDACTED:5000/chatops/request}"
+CHATOPS_REQUEST_URL="${CHATOPS_REQUEST_URL:-http://127.0.0.1:5000/chatops/request}"
 TEST_MODE=false
 REQUEST_SOURCE=""
 EVENT_AGE_SECONDS=""

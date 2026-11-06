@@ -12,7 +12,7 @@ MYSQL_ROOT_PASS="${MYSQL_ROOT_PASS:-}"
 TARGET_DB="${TARGET_DB:-hospital_db}"
 REPL_USER="${DB_REPL_USER:-repl1}"
 REPL_PASSWORD="${DB_REPL_PASSWORD:-}"
-REPL_ALLOWED_HOST="${DB_REPL_ALLOWED_HOST:-IP_REDACTED}"
+REPL_ALLOWED_HOST="${DB_REPL_ALLOWED_HOST:-15.165.140.84}"
 SOURCE_SERVER_ID="${DB_SOURCE_SERVER_ID:-1}"
 
 for required_secret in MYSQL_ROOT_PASS DB_REPL_PASSWORD; do
@@ -42,7 +42,7 @@ server-id=${SOURCE_SERVER_ID}
 log_bin=mysql-bin
 binlog_format=ROW
 binlog_do_db=${TARGET_DB}
-bind-address=IP_REDACTED
+bind-address=0.0.0.0
 EOF
 
 sudo systemctl restart mysql

@@ -74,8 +74,8 @@ git rev-parse HEAD
 test -r /home/cloud/hospital-dr-secrets/dr.env
 test "$(stat -c '%a' /home/cloud/hospital-dr-secrets/dr.env)" = 600
 
-ZABBIX_CONTROLLER_API_URL=http://IP_REDACTED/api_jsonrpc.php \
-WAZUH_CONTROLLER_INDEXER_URL=https://IP_REDACTED:9200 \
+ZABBIX_CONTROLLER_API_URL=http://127.0.0.1/api_jsonrpc.php \
+WAZUH_CONTROLLER_INDEXER_URL=https://127.0.0.1:9200 \
 WAZUH_INDEXER_TLS_SKIP_VERIFY=true \
 PYTHONNOUSERSITE=1 python3 operations/preflight/final_live_e2e_preflight.py \
   --no-legacy-shell \
@@ -148,7 +148,7 @@ the next stage begins.
    must not provision EC2, create a NAT Gateway, release an EIP, or change the
    Terraform topology.
 7. **Route health:** verify Web `source_dest_check=false`, Web ENI target,
-   `IP_REDACTED/0` and `IP_REDACTED/24` routes are `active`, and no route is
+   `0.0.0.0/0` and `10.251.0.0/24` routes are `active`, and no route is
    `blackhole` after Web is running. Confirm the Web NAT Instance status guard.
 8. **WireGuard:** run the dedicated `wg-aws-dr` pre-cutover check, then use
    only the approved live cutover procedure. Keep `wg-aws-hub` as rollback
@@ -338,10 +338,10 @@ systemctl is-active systemd-timesyncd.service chrony.service chronyd.service || 
 # Zabbix API/action contracts. The URL override avoids a Docker-internal
 # hostname; the env file path is used as a secret source and its values are
 # never printed.
-ZABBIX_API_URL=http://IP_REDACTED/api_jsonrpc.php \
+ZABBIX_API_URL=http://127.0.0.1/api_jsonrpc.php \
   python3 operations/zabbix/configure_chatops.py --check \
   --env-file /home/cloud/grafana/.env
-ZABBIX_API_URL=http://IP_REDACTED/api_jsonrpc.php \
+ZABBIX_API_URL=http://127.0.0.1/api_jsonrpc.php \
   python3 operations/zabbix/configure_production_dr_triggers.py --check \
   --env-file /home/cloud/grafana/.env
 
@@ -433,7 +433,7 @@ and the window must be rescheduled rather than entering reprovisioning.
 3. Run the Web NAT Instance status guard and verify Web forwarding/NAT and
    `wg-aws-dr` without restarting the legacy MSP tunnel.
 4. From the On-Prem DB host, record the legacy `wg-aws-hub` handshake and
-   `IP_REDACTED/32` route. Verify the dedicated key/config without starting
+   `10.20.30.10/32` route. Verify the dedicated key/config without starting
    it yet.
 5. In the approved cutover window, stop only `wg-aws-hub`, verify its route is
    gone, then apply the explicit `wg-aws-dr` client playbook. The client role
@@ -443,7 +443,7 @@ and the window must be rescheduled rather than entering reprovisioning.
    gate fails.
 7. Take a fresh source dump and capture its checksum and the same source
    `File/Pos`. Never reuse legacy coordinates. Restore the dump to the DR DB,
-   configure position-based replication with source host `IP_REDACTED`, and
+   configure position-based replication with source host `10.251.0.2`, and
    start it only after the two-person approval and pre-check pass.
 8. Accept NR only with `Replica_IO_Running=Yes`, `Replica_SQL_Running=Yes`,
    acceptable lag, no IO/SQL error, matching coordinates, and unique
@@ -465,14 +465,14 @@ manual route:
 ```bash
 # On the On-Prem DB host.
 sudo systemctl stop wg-quick@wg-aws-dr.service || true
-ip route show IP_REDACTED/32
+ip route show 10.20.30.10/32
 sudo systemctl start wg-quick@wg-aws-hub.service
 sudo wg show wg-aws-hub
-ip route get IP_REDACTED
+ip route get 10.20.30.10
 
 # From the approved management path, verify the original DB endpoint before
 # any retry. Preserve the failure evidence if it is still unreachable.
-nc -vz -w 5 IP_REDACTED 3306
+nc -vz -w 5 10.20.30.10 3306
 ```
 
 If MySQL configuration has already started and fails, stop at the failure,
@@ -553,14 +553,14 @@ For the final NR test, these non-secret values must be explicit:
 ```text
 DB_NR_ENABLED=true
 DB_REPL_MODE=position
-DB_SOURCE_HOST=IP_REDACTED
+DB_SOURCE_HOST=10.251.0.2
 DB_SOURCE_PORT=3306
 DB_SOURCE_LOG_FILE=<current source binlog file>
 DB_SOURCE_LOG_POS=<current source binlog position>
 ```
 
 `DB_REPL_PASSWORD` must be loaded from `dr.env`, never placed in a command
-line.  Set `DB_SOURCE_HOST=IP_REDACTED` only after the controlled
+line.  Set `DB_SOURCE_HOST=10.251.0.2` only after the controlled
 `wg-aws-dr` cutover and route/handshake checks have passed.  The existing
 legacy script defaults are not proof that the WG path is live.
 
@@ -571,18 +571,18 @@ Before the AWS test window:
 1. Confirm that the on-premise DB listens on TCP 3306 on the dedicated WG
    address or the local DB listener used by the routed path.
 2. Confirm the On-Prem peer has `wg-aws-dr` at `AWS_PUBLIC_IP_REDACTED/32`, the AWS Web
-   gateway has `IP_REDACTED/24`, and the peer handshake is fresh.
+   gateway has `10.251.0.1/24`, and the peer handshake is fresh.
 3. Confirm the AWS DB route to `AWS_PUBLIC_IP_REDACTED/32` uses the dedicated WG path and
    does not collide with `wg-aws-hub`.
 4. Confirm the MySQL `repl` account is allowed from the *observed routed
-   source*; do not assume the retired `IP_REDACTED` source.
+   source*; do not assume the retired `15.165.140.84` source.
 5. Record `SHOW MASTER STATUS\G` immediately before the NR test.
 6. Confirm the MSP management path separately from the AWS DB/WG path.
 
 After the AWS DR DB is running, the first live network gate is:
 
 ```bash
-nc -vz -w 5 IP_REDACTED 3306
+nc -vz -w 5 10.251.0.2 3306
 ```
 
 If it fails, stop. Do not open the AWS Security Group to `AWS_PUBLIC_IP_REDACTED/0`.
@@ -679,7 +679,7 @@ below as an execution instruction.
 NR is accepted only when:
 
 - DR DB reaches the **field-verified current On-Prem source endpoint** through
-  the approved route. Do not assume the historical `IP_REDACTED:3306` is live
+  the approved route. Do not assume the historical `10.251.0.2:3306` is live
   until route and source identity are read back;
 - the approved request selects Position mode; do not turn NR on by manually
   exporting a static environment value;
@@ -727,7 +727,7 @@ source /home/cloud/hospital-dr-secrets/dr.env
 export ONPREM_DOC_SSH=<on-premise-doc-user-and-reachable-address>
 export ONPREM_DOC_PATH=/home/hoseo/hospital_emr
 export ONPREM_DOC_PORT=5000
-export ONPREM_DB_HOST=IP_REDACTED
+export ONPREM_DB_HOST=10.251.0.2
 export ONPREM_DB_PORT=3306
 export DB_FAILBACK_CONFIRM=OVERWRITE_ONPREM_DB
 export DOC_FAILBACK_CONFIRM=SYNC_DOC_TO_ONPREM
@@ -872,7 +872,7 @@ configuration, and test evidence first.
 - NAT EIP, only after recording that deletion changes the pfSense allowlist.
 
 Deleting the preserved NAT EIP saves its idle public IPv4 cost but invalidates
-the fixed `IP_REDACTED/32` rule. Treat it as a deliberate design decision.
+the fixed `15.165.140.84/32` rule. Treat it as a deliberate design decision.
 
 ## 11. Rebuild One Week Before Demonstration
 
@@ -913,8 +913,8 @@ override below affects only this read-only probe; it does not change Grafana
 or Wazuh TLS settings.
 
 ```bash
-ZABBIX_CONTROLLER_API_URL=http://IP_REDACTED/api_jsonrpc.php \
-WAZUH_CONTROLLER_INDEXER_URL=https://IP_REDACTED:9200 \
+ZABBIX_CONTROLLER_API_URL=http://127.0.0.1/api_jsonrpc.php \
+WAZUH_CONTROLLER_INDEXER_URL=https://127.0.0.1:9200 \
 WAZUH_INDEXER_TLS_SKIP_VERIFY=true \
 python3 operations/preflight/final_live_e2e_preflight.py \
   --aux-env-file /home/cloud/grafana/.env \
@@ -1062,7 +1062,7 @@ For the dedicated WG cutover, the reversible sequence is explicitly:
 
 ```text
 legacy wg-aws-hub stop (only in the approved live window)
--> verify the legacy IP_REDACTED route is absent
+-> verify the legacy 10.20.30.10 route is absent
 -> start wg-aws-dr and verify handshake/route/3306
 -> on failure: stop wg-aws-dr
 -> restore wg-aws-hub and its AWS_PUBLIC_IP_REDACTED route
@@ -1151,7 +1151,7 @@ deliberately reports `RPO_STATUS=NOT_MEASURABLE`.  Missing events remain
 - [ ] Final preflight JSON and commit recorded
 - [ ] Zabbix healthy state
 - [ ] Grafana DR/Security/DevSecOps dashboards
-- [ ] Router SNMP live (`IP_REDACTED:161`) and Zabbix SNMP availability
+- [ ] Router SNMP live (`172.16.100.254:161`) and Zabbix SNMP availability
 - [ ] Catalyst 2950/3560/3550 SNMP live and Grafana Network Devices panel
 - [ ] A current required SNMP availability failure can create a candidate;
       unrelated SNMP warnings remain general-alert-only
@@ -1199,7 +1199,7 @@ deliberately reports `RPO_STATUS=NOT_MEASURABLE`.  Missing events remain
 | Live DR operators | Test start | Two-person approval, incident operator, evidence capture owner |
 | MSP security/operator | AWS security validation | Wazuh AWS enrollment and Indexer write/read contracts verified |
 
-No team dependency may be bypassed by opening `IP_REDACTED/0`, changing WireGuard,
+No team dependency may be bypassed by opening `0.0.0.0/0`, changing WireGuard,
 rotating credentials, disabling guards, or starting a second monitoring stack.
 
 ## 18. Final Demo Readiness Decision

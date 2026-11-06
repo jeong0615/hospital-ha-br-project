@@ -3,7 +3,7 @@
 // Read-only proof that the app connects to the exact isolated DB with only the
 // approved schema-scoped DML privileges. This script executes SELECT only.
 const mysql = require("/app/node_modules/mysql2/promise");
-const SOURCE = { web: "IP_REDACTED", emr: "IP_REDACTED" };
+const SOURCE = { web: "10.20.10.10", emr: "10.20.20.10" };
 
 function fail(code) {
   process.stderr.write(`DUMP_SERVICE_OPEN_APP_PROBE=BLOCKED reason=${code}\n`);
@@ -40,7 +40,7 @@ async function main() {
   const source = SOURCE[kind];
   if (
     !source || !/^10\.20\.30\.(?:[1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-4])$/.test(host) ||
-    host === "IP_REDACTED" || process.env.DB_HOST !== host || Number(process.env.DB_PORT) !== 3307 ||
+    host === "10.20.30.10" || process.env.DB_HOST !== host || Number(process.env.DB_PORT) !== 3307 ||
     process.env.DB_USER !== "hospital_dr_service" || process.env.DB_NAME !== "hospital_db" ||
     !process.env.DB_PASSWORD || !/^[0-9a-f-]{36}$/.test(uuid)
   ) {

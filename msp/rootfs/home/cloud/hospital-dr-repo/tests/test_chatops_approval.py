@@ -88,7 +88,7 @@ class ChatOpsApprovalFlowTest(unittest.TestCase):
         response = self.client.post(
             "/chatops/request",
             json={"action": action, "incident_id": incident_id, "summary": incident_id},
-            environ_base={"REMOTE_ADDR": "IP_REDACTED"},
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
         )
         self.assertEqual(response.status_code, 200)
         return response.get_json()
@@ -222,12 +222,12 @@ class ChatOpsApprovalFlowTest(unittest.TestCase):
         failover_response = client.post(
             "/chatops/request",
             json={"action": "failover", "incident_id": "separate-failover"},
-            environ_base={"REMOTE_ADDR": "IP_REDACTED"},
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
         )
         failback_response = client.post(
             "/chatops/request",
             json={"action": "failback", "incident_id": "separate-failback"},
-            environ_base={"REMOTE_ADDR": "IP_REDACTED"},
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
         )
         self.assertEqual(failover_response.status_code, 200)
         self.assertEqual(failback_response.status_code, 200)
@@ -297,7 +297,7 @@ class ChatOpsApprovalFlowTest(unittest.TestCase):
         response = client.post(
             "/chatops/request",
             json={"action": "failover", "incident_id": "single-admin"},
-            environ_base={"REMOTE_ADDR": "IP_REDACTED"},
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
         )
         self.assertEqual(response.status_code, 200)
         request_id = response.get_json()["request_id"]

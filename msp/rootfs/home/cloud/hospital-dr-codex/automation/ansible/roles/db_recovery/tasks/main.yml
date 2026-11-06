@@ -106,7 +106,7 @@
   lineinfile:
     path: /etc/mysql/mysql.conf.d/mysqld.cnf
     regexp: '^\\s*bind-address\\s*='
-    line: 'bind-address = IP_REDACTED'
+    line: 'bind-address = 0.0.0.0'
   register: db_bind_config
 
 - name: "Remove only a stale DR promotion override / 구형 DR promotion override 제거"

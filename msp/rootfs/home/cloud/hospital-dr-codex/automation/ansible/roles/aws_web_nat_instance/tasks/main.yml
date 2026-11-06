@@ -24,7 +24,7 @@
 
 - name: Obtain a short-lived IMDSv2 token for the Web host identity check
   ansible.builtin.uri:
-    url: http://IP_REDACTED/latest/api/token
+    url: http://169.254.169.254/latest/api/token
     method: PUT
     headers:
       X-aws-ec2-metadata-token-ttl-seconds: "60"
@@ -38,7 +38,7 @@
 
 - name: Read the Web host identity from IMDSv2
   ansible.builtin.uri:
-    url: "http://IP_REDACTED/latest/meta-data/{{ item.path }}"
+    url: "http://169.254.169.254/latest/meta-data/{{ item.path }}"
     method: GET
     headers:
       X-aws-ec2-metadata-token: "<SET_IN_SECRET_STORE>"

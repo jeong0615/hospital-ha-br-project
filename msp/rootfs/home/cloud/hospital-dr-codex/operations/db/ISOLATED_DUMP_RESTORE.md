@@ -16,7 +16,7 @@ Executor 및 Failover/DNS 경로와도 연결되지 않은 별도 검증 환경�
 - MySQL은 격리 EC2에서 별도 프로세스로 실행하고 `AWS_PUBLIC_IP_REDACTED:3307`만 사용한다. 기존
   운영 MySQL의 3306과 다른 포트이며 외부 listener는 허용하지 않는다.
 - AWS DB instance `AWS_RESOURCE_ID_REDACTED`, AWS DB IP `AWS_PUBLIC_IP_REDACTED`, On-Prem DB IP
-  `IP_REDACTED`를 코드에서 명시적으로 거부한다.
+  `192.168.200.4`를 코드에서 명시적으로 거부한다.
 - 실제 복원은 스키마가 없는 경우에만 시작한다. 복원 사용자는 `hospital_db` 스키마에
   한정되고, SQL import는 root가 아닌 socket 인증의 제한 사용자로 실행된다. 실패한
   schema를 자동 삭제하거나 재사용하지 않는다.
@@ -26,13 +26,13 @@ Executor 및 Failover/DNS 경로와도 연결되지 않은 별도 검증 환경�
 복원 환경과 서비스 listener는 분리되어 있다. Terraform의
 `enable_dump_restore_service_sg` 기본값은 `false`이며, 별도 SG는 Web/Doc SG만 source로
 허용하는 TCP/3307 규칙을 정의하지만 Terraform에서 격리 EC2에 자동 연결하지 않는다.
-기본 복원 단계는 loopback `IP_REDACTED:3307`만 유지한다.
+기본 복원 단계는 loopback `127.0.0.1:3307`만 유지한다.
 
 `service-preflight`는 AWS instance/VPC/private subnet/SG/EBS identity 및 격리 호스트의
 root-owned 성공 restore receipt, 실제 EBS serial, MySQL loopback listener를 재검증한다.
 명시적 `prepare-service --confirm-isolated-service-prepare`만 이 검증 뒤 전용 SG를 붙이고,
 복원 DB에 `hospital_dr_service` 계정을 Web/Doc 고정 사설 IP별로 준비한 다음 MySQL을
-`IP_REDACTED,<격리 DB private IP>:3307`에 바인딩한다. 이 과정은 `read_only`와
+`127.0.0.1,<격리 DB private IP>:3307`에 바인딩한다. 이 과정은 `read_only`와
 `super_read_only`를 켠 채 검증한다. 예상치 못한 listener/실패가 있으면 loopback 전용,
 read-only 상태로 격리(quarantine)하고, 네트워크 SG를 분리한다. 자동 rollback이 확인되지
 않으면 `PARTIAL_FAILURE`로 중단한다.

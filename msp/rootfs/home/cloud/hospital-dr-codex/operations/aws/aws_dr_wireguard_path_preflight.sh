@@ -4,8 +4,8 @@ set -u
 # Read-only MSP -> On-Prem DB path diagnostic. It never changes routes,
 # interfaces, WireGuard services, firewall rules, or AWS resources.
 
-EXPECTED_DB_HOST="IP_REDACTED"
-EXPECTED_GATEWAY="IP_REDACTED"
+EXPECTED_DB_HOST="192.168.200.4"
+EXPECTED_GATEWAY="10.10.10.1"
 EXPECTED_DB_PORT="3306"
 EXPECTED_SSH_PORT="22"
 EXPECTED_NEW_INTERFACE="wg-aws-dr"

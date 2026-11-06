@@ -365,9 +365,9 @@ import json
 import sys
 
 expected = {
-    "Hospital-Real-Web-Server": ("IP_REDACTED", "IP_REDACTED"),
-    "Hospital-DR-Doc-Server": ("IP_REDACTED", None),
-    "Hospital-DR-DB-Server": ("IP_REDACTED", None),
+    "Hospital-Real-Web-Server": ("10.20.10.10", "52.79.244.146"),
+    "Hospital-DR-Doc-Server": ("10.20.20.10", None),
+    "Hospital-DR-DB-Server": ("10.20.30.10", None),
 }
 try:
     items = json.load(sys.stdin)
@@ -404,7 +404,7 @@ try:
     response = json.load(sys.stdin)
     addresses = response.get("Addresses", [])
     ips = {item.get("PublicIp") for item in addresses if isinstance(item, dict)}
-    ok = {"IP_REDACTED", "IP_REDACTED"}.issubset(ips)
+    ok = {"15.165.140.84", "52.79.244.146"}.issubset(ips)
 except (TypeError, ValueError, json.JSONDecodeError):
     ok = False
 raise SystemExit(0 if ok else 1)
@@ -569,7 +569,7 @@ direct_nr_ready=true
 direct_nr_missing=()
 [[ "${DB_NR_ENABLED:-}" == true ]] || direct_nr_ready=false
 [[ "${DB_REPL_MODE:-}" == position ]] || direct_nr_ready=false
-[[ "${DB_SOURCE_HOST:-}" == IP_REDACTED ]] || direct_nr_ready=false
+[[ "${DB_SOURCE_HOST:-}" == 1.209.148.228 ]] || direct_nr_ready=false
 [[ "${DB_SOURCE_PORT:-}" == 3306 ]] || direct_nr_ready=false
 [[ "${DB_REPL_USER:-}" == repl1 ]] || direct_nr_ready=false
 for direct_nr_secret in DB_REPL_PASSWORD DB_SOURCE_LOG_FILE DB_SOURCE_LOG_POS; do

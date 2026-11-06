@@ -2,11 +2,11 @@
 set -euo pipefail
 
 LOG_FILE="/home/cloud/hospital-dr-terraform/onprem_web_emr_proxy_sync.log"
-ONPREM_WEB_SSH="${ONPREM_WEB_SSH:-vboxuser@IP_REDACTED}"
+ONPREM_WEB_SSH="${ONPREM_WEB_SSH:-vboxuser@192.168.200.3}"
 ONPREM_WEB_SSH_KEY="${ONPREM_WEB_SSH_KEY:-/home/cloud/.ssh/dr_key_v2}"
-ONPREM_WEB_NODE_UPSTREAM="${ONPREM_WEB_NODE_UPSTREAM:-http://IP_REDACTED:3000}"
-ONPREM_DOC_UPSTREAM="${ONPREM_DOC_UPSTREAM:-http://IP_REDACTED:5000}"
-OFFICE_EGRESS_IP="${OFFICE_EGRESS_IP:-IP_REDACTED}"
+ONPREM_WEB_NODE_UPSTREAM="${ONPREM_WEB_NODE_UPSTREAM:-http://127.0.0.1:3000}"
+ONPREM_DOC_UPSTREAM="${ONPREM_DOC_UPSTREAM:-http://192.168.30.11:5000}"
+OFFICE_EGRESS_IP="${OFFICE_EGRESS_IP:-1.209.148.228}"
 EMR_HEALTH_CHECK_HEADER="${EMR_HEALTH_CHECK_HEADER:-dr-emr-check-2026}"
 REMOTE_SITE_PATH="${REMOTE_SITE_PATH:-/etc/nginx/sites-available/hospital-web}"
 SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o GlobalKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=4)
@@ -109,7 +109,7 @@ ssh -n -i "$ONPREM_WEB_SSH_KEY" "${SSH_OPTS[@]}" "$ONPREM_WEB_SSH" "sudo install
 
 echo "[ONPREM WEB] Validating local root, /emr/, and emr subdomain proxy endpoints."
 echo "[온프레 Web] 로컬 root, /emr/, emr 서브도메인 프록시 엔드포인트 검증."
-ssh -n -i "$ONPREM_WEB_SSH_KEY" "${SSH_OPTS[@]}" "$ONPREM_WEB_SSH" "curl -fsS --connect-timeout 5 --max-time 15 http://IP_REDACTED/ >/dev/null && curl -fsS --connect-timeout 5 --max-time 15 -H 'X-Hospital-DR-Check: ${EMR_HEALTH_CHECK_HEADER}' http://IP_REDACTED/emr/ >/dev/null && curl -fsS --connect-timeout 5 --max-time 15 -H 'Host: emr.hospital-web.pp.ua' -H 'X-Hospital-DR-Check: ${EMR_HEALTH_CHECK_HEADER}' http://IP_REDACTED/ >/dev/null"
+ssh -n -i "$ONPREM_WEB_SSH_KEY" "${SSH_OPTS[@]}" "$ONPREM_WEB_SSH" "curl -fsS --connect-timeout 5 --max-time 15 http://127.0.0.1/ >/dev/null && curl -fsS --connect-timeout 5 --max-time 15 -H 'X-Hospital-DR-Check: ${EMR_HEALTH_CHECK_HEADER}' http://127.0.0.1/emr/ >/dev/null && curl -fsS --connect-timeout 5 --max-time 15 -H 'Host: emr.hospital-web.pp.ua' -H 'X-Hospital-DR-Check: ${EMR_HEALTH_CHECK_HEADER}' http://127.0.0.1/ >/dev/null"
 
 echo "[ONPREM WEB] On-premises Web /emr proxy sync completed."
 echo "[온프레 Web] 온프레미스 Web /emr 프록시 동기화 완료."

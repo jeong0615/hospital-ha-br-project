@@ -11,7 +11,7 @@ SERVICE_SOURCE="$SCRIPT_DIR/$SERVICE_NAME"
 SERVICE_TARGET="/etc/systemd/system/$SERVICE_NAME"
 TOKEN_FILE="/etc/cloudflared/chatops-tunnel.token"
 CLOUDFLARED_BIN="/usr/bin/cloudflared"
-UPSTREAM_URL="http://IP_REDACTED:5000/"
+UPSTREAM_URL="http://127.0.0.1:5000/"
 BACKUP_DIR="/var/backups/hospital-dr-chatops-tunnel"
 
 DRY_RUN=false

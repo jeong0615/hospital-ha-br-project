@@ -8,13 +8,13 @@ import socket
 import socketserver
 
 
-BIND_HOST = os.environ.get("ZABBIX_PROXY_BIND", "IP_REDACTED")
+BIND_HOST = os.environ.get("ZABBIX_PROXY_BIND", "172.18.0.1")
 BIND_PORT = int(os.environ.get("ZABBIX_PROXY_PORT", "5001"))
 # Prefer the stable Docker bridge network. Keep the exact-source setting as a
 # compatibility override for deployments that cannot configure a network CIDR.
 ALLOWED_NETWORK = os.environ.get("ZABBIX_PROXY_ALLOWED_NETWORK", "").strip()
 ALLOWED_SOURCE = os.environ.get("ZABBIX_PROXY_ALLOWED_SOURCE", "").strip()
-TARGET_HOST = os.environ.get("CHATOPS_PROXY_TARGET_HOST", "IP_REDACTED")
+TARGET_HOST = os.environ.get("CHATOPS_PROXY_TARGET_HOST", "127.0.0.1")
 TARGET_PORT = int(os.environ.get("CHATOPS_PROXY_TARGET_PORT", "5000"))
 
 

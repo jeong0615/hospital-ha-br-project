@@ -571,7 +571,7 @@ def collect_readiness(
         unit_text = source_unit_path.read_text(encoding="utf-8")
         app_text = app_path.read_text(encoding="utf-8")
         core_text = core_path.read_text(encoding="utf-8")
-        static_ok = "--bind IP_REDACTED:5000" in unit_text and "@app.get(\"/\")" in core_text and "create_app(" in app_text
+        static_ok = "--bind 127.0.0.1:5000" in unit_text and "@app.get(\"/\")" in core_text and "create_app(" in app_text
     except OSError:
         static_ok = False
     checks = [

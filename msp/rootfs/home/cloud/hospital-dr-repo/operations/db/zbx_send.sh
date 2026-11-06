@@ -4,7 +4,7 @@
 # Source this file from DR scripts, then call: zbx_send "item.key" "value"
 
 ZBX_SENDER_BIN="${ZBX_SENDER_BIN:-/usr/bin/zabbix_sender}"
-ZBX_SERVER="${ZBX_SERVER:-IP_REDACTED}"
+ZBX_SERVER="${ZBX_SERVER:-127.0.0.1}"
 ZBX_SERVER_PORT="${ZBX_SERVER_PORT:-10051}"
 ZBX_DR_HOST="${ZBX_DR_HOST:-Hospital_DR_Automation}"
 

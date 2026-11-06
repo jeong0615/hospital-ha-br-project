@@ -284,8 +284,8 @@ def expected_network_acl_rules(outputs: dict[str, Any]) -> dict[str, set[tuple[A
     # They are not editable, but checking them makes the readback exact and
     # catches unexpected explicit deny/IPv6 rules instead of ignoring them.
     implicit_deny = {
-        (False, 32767, "-1", "deny", "IP_REDACTED/0", None, None),
-        (True, 32767, "-1", "deny", "IP_REDACTED/0", None, None),
+        (False, 32767, "-1", "deny", "0.0.0.0/0", None, None),
+        (True, 32767, "-1", "deny", "0.0.0.0/0", None, None),
     }
     return {"web": web_rules | implicit_deny, "emr": emr_rules | implicit_deny, "default": implicit_deny}
 
@@ -584,11 +584,11 @@ def validate_snapshot(outputs: dict[str, Any], observed: dict[str, Any], *, afte
     expected_route_sets = {
         "public": {
             expected_vpc_route,
-            ("IP_REDACTED/0", outputs["internet_gateway_id"], "active"),
+            ("0.0.0.0/0", outputs["internet_gateway_id"], "active"),
         },
         "private": {
             expected_vpc_route,
-            ("IP_REDACTED/0", outputs["web_eni_id"], "active" if after_web_start else "blackhole"),
+            ("0.0.0.0/0", outputs["web_eni_id"], "active" if after_web_start else "blackhole"),
         },
         "default": {expected_vpc_route},
     }
@@ -1444,7 +1444,7 @@ def _guest_identity_script(*, require_nat_tools: bool = False) -> str:
     nat_tools = "iptables iptables-save " if require_nat_tools else ""
     script = r'''set -eu
 T=$(curl -fsS --connect-timeout 3 --max-time 6 -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' http://AWS_PUBLIC_IP_REDACTED/latest/api/token)
-M=http://IP_REDACTED/latest/meta-data
+M=http://169.254.169.254/latest/meta-data
 getm(){ curl -fsS --connect-timeout 3 --max-time 6 -H "X-aws-ec2-metadata-token: $T" "$M/$1"; }
 IID=$(getm instance-id); IP=$(getm local-ipv4); MAC=$(getm mac)
 VPC=$(getm "network/interfaces/macs/$MAC/vpc-id"); SUBNET=$(getm "network/interfaces/macs/$MAC/subnet-id"); ENI=$(getm "network/interfaces/macs/$MAC/interface-id")

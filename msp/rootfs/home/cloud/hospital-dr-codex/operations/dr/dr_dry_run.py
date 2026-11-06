@@ -110,10 +110,10 @@ def run() -> int:
                 "Value": "0",
                 "Severity": "HIGH",
                 "Message": "MySQL TCP 3306 unavailable (controlled dry-run problem)",
-                "Item": "net.tcp.service[tcp,IP_REDACTED,3306]",
+                "Item": "net.tcp.service[tcp,192.168.200.4,3306]",
                 "Timestamp": incident_at,
             },
-            environ_base={"REMOTE_ADDR": "IP_REDACTED"},
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
         )
         problem_result = problem.get_json() or {}
         problem_pass = (
@@ -162,7 +162,7 @@ def run() -> int:
                 "X-ChatOps-Zabbix-Timestamp": signature_timestamp,
                 "X-ChatOps-Zabbix-Signature": "v1=" + signature,
             },
-            environ_base={"REMOTE_ADDR": "IP_REDACTED"},
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
         )
         aggregate_result = aggregate_response.get_json() or {}
         aggregate_approval_pass = (
@@ -181,10 +181,10 @@ def run() -> int:
                 "Value": "0",
                 "Severity": "HIGH",
                 "Message": "MySQL TCP 3306 recovered (controlled dry-run recovery)",
-                "Item": "net.tcp.service[tcp,IP_REDACTED,3306]",
+                "Item": "net.tcp.service[tcp,192.168.200.4,3306]",
                 "Timestamp": incident_at,
             },
-            environ_base={"REMOTE_ADDR": "IP_REDACTED"},
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
         )
         recovery_pass = recovery.status_code == 200 and recovery.get_json().get("alert_sent") is True
 
@@ -202,7 +202,7 @@ def run() -> int:
                 "stability_verified": True,
                 "stability_seconds": 300,
             },
-            environ_base={"REMOTE_ADDR": "IP_REDACTED"},
+            environ_base={"REMOTE_ADDR": "127.0.0.1"},
         )
         failback_result = failback_response.get_json() or {}
         failback_guard_pass = (

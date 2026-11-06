@@ -33,7 +33,7 @@ ChatOps service to create the fixed synthetic request:
 curl --fail --silent --show-error \
   -H 'Content-Type: application/json' \
   -d '{"confirm_synthetic_mysql_demo":true}' \
-  http://IP_REDACTED:5000/chatops/synthetic-mysql-demo/request
+  http://127.0.0.1:5000/chatops/synthetic-mysql-demo/request
 ```
 
 The service returns one request ID and posts the request to Slack. Confirm the

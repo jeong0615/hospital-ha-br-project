@@ -109,11 +109,11 @@ hostname, active_server, role = sys.argv[1:]
 path = Path("/etc/zabbix/zabbix_agentd.conf")
 text = path.read_text(encoding="utf-8") if path.exists() else ""
 settings = {
-    "Server": "IP_REDACTED",
+    "Server": "127.0.0.1",
     "ServerActive": active_server,
     "Hostname": hostname,
     "HostMetadata": "aws-dr-monitoring",
-    "ListenIP": "IP_REDACTED",
+    "ListenIP": "127.0.0.1",
     "RefreshActiveChecks": "60",
     "Timeout": "5",
 }

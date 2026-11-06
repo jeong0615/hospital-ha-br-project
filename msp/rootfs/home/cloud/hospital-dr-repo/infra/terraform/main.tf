@@ -12,19 +12,19 @@ variable "ssh_public_key_path" {
 }
 
 variable "vpc_cidr" {
-  default = "IP_REDACTED/16"
+  default = "10.20.0.0/16"
 }
 
 variable "private_web_subnet_cidr" {
-  default = "IP_REDACTED/24"
+  default = "10.20.10.0/24"
 }
 
 variable "private_doc_subnet_cidr" {
-  default = "IP_REDACTED/24"
+  default = "10.20.20.0/24"
 }
 
 variable "private_db_subnet_cidr" {
-  default = "IP_REDACTED/24"
+  default = "10.20.30.0/24"
 }
 
 variable "ubuntu_ami_id" {
@@ -54,13 +54,13 @@ variable "enable_static_web_eip" {
 variable "onprem_web_public_ip" {
   description = "Public IP for the on-premises Web reverse proxy"
   type        = string
-  default     = "IP_REDACTED"
+  default     = "203.0.113.10"
 }
 
 variable "management_ipv4_cidrs" {
   description = "Trusted administrator and Ansible controller public IPv4 CIDRs"
   type        = list(string)
-  default     = ["IP_REDACTED/32"]
+  default     = ["203.0.113.10/32"]
 
   validation {
     condition     = length(var.management_ipv4_cidrs) > 0 && alltrue([for cidr in var.management_ipv4_cidrs : can(cidrhost(cidr, 0))])
@@ -72,21 +72,21 @@ variable "cloudflare_ipv4_cidrs" {
   description = "Cloudflare IPv4 ranges allowed to reach the DR Web origin"
   type        = list(string)
   default = [
-    "IP_REDACTED/20",
-    "IP_REDACTED/22",
-    "IP_REDACTED/22",
-    "IP_REDACTED/22",
-    "IP_REDACTED/18",
-    "IP_REDACTED/18",
-    "IP_REDACTED/20",
-    "IP_REDACTED/20",
-    "IP_REDACTED/22",
-    "IP_REDACTED/17",
-    "IP_REDACTED/15",
-    "IP_REDACTED/13",
-    "IP_REDACTED/14",
-    "IP_REDACTED/13",
-    "IP_REDACTED/22",
+    "173.245.48.0/20",
+    "103.21.244.0/22",
+    "103.22.200.0/22",
+    "103.31.4.0/22",
+    "141.101.64.0/18",
+    "108.162.192.0/18",
+    "190.93.240.0/20",
+    "188.114.96.0/20",
+    "197.234.240.0/22",
+    "198.41.128.0/17",
+    "162.158.0.0/15",
+    "104.16.0.0/13",
+    "104.24.0.0/14",
+    "172.64.0.0/13",
+    "131.0.72.0/22",
   ]
 
   validation {
@@ -374,7 +374,7 @@ resource "aws_nat_gateway" "nat_gw" {
 
 resource "aws_subnet" "public_subnet" {
   vpc_id                  = aws_vpc.dr_vpc.id
-  cidr_block              = "IP_REDACTED/24"
+  cidr_block              = "10.20.0.0/24"
   map_public_ip_on_launch = true
   availability_zone       = "${var.aws_region}a"
   tags                    = { Name = "Hospital-DR-Public-Subnet" }
@@ -407,7 +407,7 @@ resource "aws_subnet" "private_db_subnet" {
 resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.dr_vpc.id
   route {
-    cidr_block = "IP_REDACTED/0"
+    cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.igw.id
   }
   tags = { Name = "Hospital-DR-Public-RT" }
@@ -495,7 +495,7 @@ resource "aws_security_group" "web_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["IP_REDACTED/0"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
@@ -532,7 +532,7 @@ resource "aws_security_group" "doc_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["IP_REDACTED/0"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
@@ -576,7 +576,7 @@ resource "aws_security_group" "db_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["IP_REDACTED/0"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
@@ -587,7 +587,7 @@ resource "aws_instance" "hospital_real_web" {
   ami                         = var.ubuntu_ami_id
   instance_type               = "t3.micro"
   subnet_id                   = aws_subnet.private_web_subnet.id
-  private_ip                  = "IP_REDACTED"
+  private_ip                  = "10.20.10.10"
   vpc_security_group_ids      = [aws_security_group.web_sg.id]
   key_name                    = aws_key_pair.dr_key.key_name
   associate_public_ip_address = true
@@ -609,7 +609,7 @@ resource "aws_instance" "doc_server" {
   ami                         = var.ubuntu_ami_id
   instance_type               = "t3.micro"
   subnet_id                   = aws_subnet.private_doc_subnet.id
-  private_ip                  = "IP_REDACTED"
+  private_ip                  = "10.20.20.10"
   vpc_security_group_ids      = [aws_security_group.doc_sg.id]
   key_name                    = aws_key_pair.dr_key.key_name
   associate_public_ip_address = false
@@ -621,7 +621,7 @@ resource "aws_instance" "db_server" {
   ami                         = var.ubuntu_ami_id
   instance_type               = "t3.micro"
   subnet_id                   = aws_subnet.private_db_subnet.id
-  private_ip                  = "IP_REDACTED"
+  private_ip                  = "10.20.30.10"
   vpc_security_group_ids      = [aws_security_group.db_sg.id]
   key_name                    = aws_key_pair.dr_key.key_name
   associate_public_ip_address = false

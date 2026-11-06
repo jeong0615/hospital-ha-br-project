@@ -1,6 +1,6 @@
 # ChatOps HTTPS callback preparation
 
-These units keep ChatOps on `IP_REDACTED:5000` and run a separate
+These units keep ChatOps on `127.0.0.1:5000` and run a separate
 Cloudflare Tunnel connector. They do not contain a tunnel token or any
 application Secret.
 
@@ -49,7 +49,7 @@ sudo apt-get install -y --no-install-recommends python3-gunicorn
 ```
 
 The service invokes the distro package as `/usr/bin/python3 -m gunicorn` with
-one threaded worker, remains bound to `IP_REDACTED:5000`, and starts the
+one threaded worker, remains bound to `127.0.0.1:5000`, and starts the
 expiry/cleanup workers from `wsgi.py`.
 Install the tunnel unit without starting it:
 
@@ -85,7 +85,7 @@ In Cloudflare Zero Trust, verify or restore one Published application route:
 
 ```text
 Hostname: chatops.hospital-web.pp.ua
-Service:  http://IP_REDACTED:5000
+Service:  http://127.0.0.1:5000
 ```
 
 Do not change `hospital-web.pp.ua`. Cloudflare should create the DNS route
@@ -97,7 +97,7 @@ Cloudflare Dashboard to verify the tunnel and route rather than creating a
 second tunnel. The route must be exactly:
 
 ```text
-chatops.hospital-web.pp.ua -> http://IP_REDACTED:5000
+chatops.hospital-web.pp.ua -> http://127.0.0.1:5000
 ```
 
 The DNS record and tunnel route must be verified before changing any Slack App

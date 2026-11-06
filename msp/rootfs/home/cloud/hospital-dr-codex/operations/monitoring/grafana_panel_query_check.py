@@ -46,6 +46,24 @@ def _numeric_values(frame: dict[str, Any]) -> list[float]:
     return result
 
 
+def _frame_row_count(frame: dict[str, Any]) -> int:
+    values = (frame.get("data") or {}).get("values") or []
+    return max((len(column) for column in values if isinstance(column, list)), default=0)
+
+
+def _string_field_count(frame: dict[str, Any]) -> int:
+    fields = (frame.get("schema") or {}).get("fields") or []
+    return sum(field.get("type") == "string" for field in fields if isinstance(field, dict))
+
+
+def _raw_data_refs(panel: dict[str, Any]) -> set[str]:
+    return {
+        str(target.get("refId"))
+        for target in panel.get("targets", [])
+        if any(metric.get("type") == "raw_data" for metric in target.get("metrics", []) if isinstance(metric, dict))
+    }
+
+
 def _query_panel(session: requests.Session, url: str, panel: dict[str, Any], time_from: str, time_to: str) -> dict[str, Any]:
     targets = []
     for target in panel.get("targets", []):
@@ -88,16 +106,40 @@ def check_dashboard(session: requests.Session, url: str, path: Path, time_from: 
         try:
             payload = _query_panel(session, url, panel, selected_from, time_to)
             frames = []
+            raw_frames = []
             errors = []
-            for result in (payload.get("results") or {}).values():
+            raw_refs = _raw_data_refs(panel)
+            for ref_id, result in (payload.get("results") or {}).items():
                 if result.get("error"):
                     errors.append("query-error")
-                frames.extend(result.get("frames") or [])
+                result_frames = result.get("frames") or []
+                if ref_id in raw_refs:
+                    raw_frames.extend(result_frames)
+                else:
+                    frames.extend(result_frames)
             numeric = [value for frame in frames for value in _numeric_values(frame)]
             explicit_empty = panel.get("fieldConfig", {}).get("defaults", {}).get("noValue")
+            raw_rows = sum(_frame_row_count(frame) for frame in raw_frames)
+            malformed_raw_frames = sum(
+                _frame_row_count(frame) > 0 and _string_field_count(frame) == 0
+                for frame in raw_frames
+            )
+            raw_string_fields = sum(_string_field_count(frame) for frame in raw_frames)
             if errors:
                 status = "FAIL"
                 detail = "query-error"
+            elif raw_refs and malformed_raw_frames:
+                status = "FAIL"
+                detail = "raw-data-frame-missing-string-fields"
+            elif raw_refs and raw_rows:
+                status = "PASS"
+                detail = f"raw_frames={len(raw_frames)} rows={raw_rows} string_fields={raw_string_fields}"
+            elif raw_refs and explicit_empty:
+                status = "PASS"
+                detail = f"raw_rows=0 explicit-state={explicit_empty}"
+            elif raw_refs:
+                status = "NO_DATA"
+                detail = "raw-data query succeeded with zero rows in the selected range; collection freshness is unverified"
             elif frames and numeric:
                 status = "PASS"
                 if panel.get("datasource", {}).get("type") == "elasticsearch":
@@ -118,7 +160,7 @@ def check_dashboard(session: requests.Session, url: str, path: Path, time_from: 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--grafana-url", default=os.environ.get("GRAFANA_URL", "http://IP_REDACTED:3001"))
+    parser.add_argument("--grafana-url", default=os.environ.get("GRAFANA_URL", "http://127.0.0.1:3001"))
     parser.add_argument("--env-file", type=Path, default=Path("/home/cloud/grafana/.env"))
     parser.add_argument("--dashboard-dir", type=Path, default=DEFAULT_DASHBOARD_DIR)
     parser.add_argument("--dashboard", action="append", help="Dashboard filename; defaults to every JSON dashboard")
@@ -137,11 +179,19 @@ def main(argv: list[str] | None = None) -> int:
     session = requests.Session()
     session.auth = (user, password)
     failures = 0
+    no_data_panels = 0
     for path in paths:
         for result in check_dashboard(session, args.grafana_url, path, args.time_from, args.time_to):
             print(f"PANEL={path.stem}/{result['title']} STATUS={result['status']} {result['kind']} {result['detail']}")
             failures += result["status"] == "FAIL"
-    print(f"GRAFANA_QUERY_CHECK={'PASS' if failures == 0 else 'FAIL'}")
+            no_data_panels += result["status"] == "NO_DATA"
+    if failures:
+        summary = "FAIL"
+    elif no_data_panels:
+        summary = "PASS_WITH_NO_DATA"
+    else:
+        summary = "PASS"
+    print(f"GRAFANA_QUERY_CHECK={summary}")
     return 1 if failures else 0
 
 

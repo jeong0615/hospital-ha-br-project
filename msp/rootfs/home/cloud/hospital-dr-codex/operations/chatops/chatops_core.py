@@ -76,7 +76,7 @@ FAILOVER_RPO_EXECUTION_POLICY = "WARN_AND_REQUIRE_TWO_ADMIN_RISK_ACCEPTANCE"
 FAILOVER_RECOVERY_REQUEST_TYPES = {"NORMAL_FAILOVER", REQUEST_TYPE_EMERGENCY_FAILOVER}
 DEMO_DUMP_OVERWRITE_TARGET = {
     "instance_id": "AWS_RESOURCE_ID_REDACTED",
-    "private_ip": "IP_REDACTED",
+    "private_ip": "10.20.30.10",
     "port": 3306,
     "database": "hospital_db",
 }
@@ -3063,6 +3063,380 @@ def _rto_measurement_status(app):
     ):
         return "UNVERIFIED", "NOT_MEASURED; RTO timeline could not be verified"
 
+
+AUTOMATION_HISTORY_RECENT_SECONDS = 24 * 60 * 60
+AUTOMATION_HISTORY_PUBLISH_INTERVAL_SECONDS = 60
+AUTOMATION_HISTORY_ITEM_KEYS = {
+    "history": "dr.automation.history",
+    "provisioning": "dr.automation.provisioning.history",
+    "collection_status": "dr.automation.collection.status",
+    "collection_checked_at": "dr.automation.collection.checked_at",
+    "collection_age_seconds": "dr.automation.collection.age_seconds",
+}
+AUTOMATION_NUMERIC_ITEM_KEYS = {
+    "failover_status": "dr.automation.failover.status_code",
+    "failover_last_at": "dr.automation.failover.last_at",
+    "failback_status": "dr.automation.failback.status_code",
+    "failback_last_at": "dr.automation.failback.last_at",
+    "dump_status": "dr.automation.dump.status_code",
+    "dump_last_at": "dr.automation.dump.last_at",
+    "terraform_stage_status": "dr.automation.terraform.stage_status_code",
+    "terraform_workflow_status": "dr.automation.terraform.workflow_status_code",
+    "terraform_last_at": "dr.automation.terraform.last_at",
+    "terraform_stage_duration": "dr.automation.terraform.stage_duration_seconds",
+    "ansible_stage_status": "dr.automation.ansible.stage_status_code",
+    "ansible_workflow_status": "dr.automation.ansible.workflow_status_code",
+    "ansible_last_at": "dr.automation.ansible.last_at",
+    "ansible_stage_duration": "dr.automation.ansible.stage_duration_seconds",
+}
+
+
+def _automation_history_time(value):
+    try:
+        return datetime.fromtimestamp(float(value), timezone.utc).astimezone(
+            ZoneInfo("Asia/Seoul")
+        ).isoformat(timespec="seconds")
+    except (TypeError, ValueError, OverflowError, OSError):
+        return "NOT_RECORDED"
+
+
+def _automation_history_record_label(row):
+    status = str(row.get("status") or "UNKNOWN").upper()
+    request_id = str(row.get("request_id") or "UNKNOWN")
+    if not re.fullmatch(r"[A-Za-z0-9_.:-]{1,96}", request_id):
+        request_id = "UNVERIFIED"
+    finished = row.get("finished_at")
+    timestamp = _automation_history_time(finished or row.get("execution_started_at"))
+    duration = "NOT_MEASURED"
+    try:
+        started = float(row["execution_started_at"])
+        ended = float(finished)
+        if ended >= started:
+            duration = f"{round(ended - started)}s"
+    except (KeyError, TypeError, ValueError, OverflowError):
+        pass
+    return f"{status}@{timestamp} req={request_id} duration={duration}"
+
+
+def _automation_timestamp_ms(value):
+    try:
+        epoch = float(value)
+        return int(round(epoch * 1000)) if epoch > 0 else 0
+    except (TypeError, ValueError, OverflowError):
+        return 0
+
+
+def _automation_workflow_status_code(status):
+    return {
+        "SUCCEEDED": 10,
+        "FAILED": 20,
+        "PARTIAL_FAILURE": 30,
+        "DB_RESTORED_NOT_FAILOVER_COMPLETE": 40,
+    }.get(str(status or "").upper(), 90)
+
+
+def _automation_operation_numeric_metrics(rows, now_epoch):
+    if not rows:
+        return 0, 0
+
+    def sort_epoch(row):
+        try:
+            return float(row.get("finished_at") or row.get("execution_started_at") or 0)
+        except (TypeError, ValueError, OverflowError):
+            return 0
+
+    ordered = sorted(rows, key=sort_epoch, reverse=True)
+    latest = ordered[0]
+    if any(
+        str(row.get("status") or "").upper() == "EXECUTING"
+        and row.get("finished_at") is None
+        for row in rows
+    ):
+        status_code = 50
+    else:
+        outcome = _automation_workflow_status_code(latest.get("status"))
+        last_started = sort_epoch({"execution_started_at": latest.get("execution_started_at")})
+        recent = last_started >= now_epoch - AUTOMATION_HISTORY_RECENT_SECONDS
+        status_code = outcome if recent else outcome + 100
+
+    timestamp = _automation_timestamp_ms(
+        latest.get("finished_at") or latest.get("execution_started_at")
+    )
+    return status_code, timestamp
+
+
+def _automation_history_operation_summary(label, rows, now_epoch):
+    if not rows:
+        return f"{label}=NO_EXECUTION_RECORD"
+
+    recent = [
+        row for row in rows
+        if float(row.get("execution_started_at") or 0) >= now_epoch - AUTOMATION_HISTORY_RECENT_SECONDS
+    ]
+    active = [
+        row for row in rows
+        if str(row.get("status") or "").upper() == "EXECUTING" and row.get("finished_at") is None
+    ]
+    if active:
+        state = "EXECUTION_IN_PROGRESS"
+    elif recent:
+        state = "RECENT_EXECUTION"
+    else:
+        state = "NO_RECENT_EXECUTION"
+
+    def sort_epoch(row):
+        try:
+            return float(row.get("finished_at") or row.get("execution_started_at") or 0)
+        except (TypeError, ValueError, OverflowError):
+            return 0
+
+    ordered = sorted(rows, key=sort_epoch, reverse=True)
+    successes = [row for row in rows if str(row.get("status") or "").upper() == "SUCCEEDED"]
+    failures = [
+        row for row in rows
+        if str(row.get("status") or "").upper() in {
+            "FAILED", "PARTIAL_FAILURE", "DB_RESTORED_NOT_FAILOVER_COMPLETE"
+        }
+    ]
+    latest_success = max(successes, key=sort_epoch) if successes else None
+    latest_failure = max(failures, key=sort_epoch) if failures else None
+    last = _automation_history_record_label(ordered[0])
+    success_text = _automation_history_record_label(latest_success) if latest_success else "NO_SUCCESS_RECORD"
+    failure_text = _automation_history_record_label(latest_failure) if latest_failure else "NO_FAILURE_RECORD"
+    return (
+        f"{label}={state} executions={len(rows)} recent_24h={len(recent)} "
+        f"last=[{last}] last_success=[{success_text}] last_failure=[{failure_text}]"
+    )
+
+
+def _automation_provisioning_summary(app, rows):
+    terraform_records = []
+    ansible_records = []
+    numeric_metrics = {}
+    logs_unavailable = 0
+    terraform_plan_only_count = 0
+    terraform_apply = re.compile(r"\bterraform\s+apply\b|\bApply complete!|\bApply failed!", re.IGNORECASE)
+    terraform_plan = re.compile(r"\bterraform\s+plan\b|^Plan: .* to (add|change|destroy)", re.IGNORECASE)
+    ansible_run = re.compile(r"\bansible-playbook\b|\bPLAY \[|\bTASK \[|\bPLAY RECAP\b", re.IGNORECASE)
+    recap_counts = re.compile(r"failed=(\d+).*unreachable=(\d+)|unreachable=(\d+).*failed=(\d+)")
+
+    for row in rows:
+        if not row.get("execution_started_at"):
+            continue
+        category, _reason = _execution_record_category(row)
+        if category is None:
+            continue
+        path = execution_log_path(app, str(row.get("request_id") or ""))
+        if path is None:
+            logs_unavailable += 1
+            continue
+        lines, _total, error = read_execution_log(path, limit=500)
+        if error:
+            logs_unavailable += 1
+            continue
+        tf_lines = [line for line in lines if terraform_apply.search(line)]
+        ansible_lines = [line for line in lines if ansible_run.search(line)]
+        recap_index = next(
+            (index for index, line in enumerate(lines) if "PLAY RECAP" in line),
+            None,
+        )
+        ansible_recap_lines = (
+            lines[recap_index + 1:recap_index + 4]
+            if recap_index is not None else []
+        )
+        terraform_plan_only = not tf_lines and any(terraform_plan.search(line) for line in lines)
+        if terraform_plan_only:
+            terraform_plan_only_count += 1
+        request_record = {
+            "request_id": row.get("request_id"),
+            "status": str(row.get("status") or "UNKNOWN").upper(),
+            "execution_started_at": row.get("execution_started_at"),
+            "finished_at": row.get("finished_at"),
+            "terraform": tf_lines,
+            "ansible": ansible_lines,
+            "ansible_recap": ansible_recap_lines,
+        }
+        if tf_lines:
+            terraform_records.append(request_record)
+        if ansible_lines:
+            ansible_records.append(request_record)
+
+    def stage_summary(name, records, is_ansible=False):
+        prefix = name.lower()
+        if not records:
+            unknown_stage = logs_unavailable > 0
+            numeric_metrics[f"{prefix}_stage_status"] = 90 if unknown_stage else 0
+            numeric_metrics[f"{prefix}_workflow_status"] = 90 if unknown_stage else 0
+            numeric_metrics[f"{prefix}_last_at"] = 0
+            numeric_metrics[f"{prefix}_stage_duration"] = -1
+            return f"{name}=NO_VERIFIED_EXECUTION_RECORD"
+        records.sort(
+            key=lambda row: float(row.get("finished_at") or row.get("execution_started_at") or 0),
+            reverse=True,
+        )
+        latest = records[0]
+        result = "RUN_RECORDED"
+        if is_ansible:
+            if latest["ansible_recap"]:
+                counts = recap_counts.search(" ".join(latest["ansible_recap"]))
+                if counts:
+                    failed, unreachable = (
+                        (int(counts.group(1)), int(counts.group(2)))
+                        if counts.group(1) is not None
+                        else (int(counts.group(4)), int(counts.group(3)))
+                    )
+                    result = "PASS" if failed == 0 and unreachable == 0 else "FAILED"
+                else:
+                    result = "RECAP_RECORDED"
+        elif any("Apply complete!" in line for line in latest["terraform"]):
+            result = "STAGE_PASS"
+        elif any("Apply failed!" in line for line in latest["terraform"]):
+            result = "STAGE_FAILED"
+        stage_status = {
+            "STAGE_PASS": 10,
+            "PASS": 10,
+            "STAGE_FAILED": 20,
+            "FAILED": 20,
+            "RUN_RECORDED": 30,
+            "RECAP_RECORDED": 30,
+        }.get(result, 90)
+        numeric_metrics[f"{prefix}_stage_status"] = stage_status
+        numeric_metrics[f"{prefix}_workflow_status"] = _automation_workflow_status_code(
+            latest.get("status")
+        )
+        numeric_metrics[f"{prefix}_last_at"] = _automation_timestamp_ms(
+            latest.get("finished_at") or latest.get("execution_started_at")
+        )
+        # The execution logs do not carry a verified Terraform/Ansible stage
+        # start/end pair, so never substitute the enclosing workflow duration.
+        numeric_metrics[f"{prefix}_stage_duration"] = -1
+        return (
+            f"{name}={result} records={len(records)} workflow_outcome="
+            f"{latest['status']}@{_automation_history_time(latest.get('finished_at') or latest.get('execution_started_at'))} "
+            f"req={latest.get('request_id')} stage_duration=NOT_RECORDED"
+        )
+
+    terraform_text = stage_summary("Terraform", terraform_records)
+    ansible_text = stage_summary("Ansible", ansible_records, is_ansible=True)
+    summary = (
+        f"{terraform_text} | {ansible_text} | terraform_plan_only_records={terraform_plan_only_count} "
+        f"unavailable_execution_logs={logs_unavailable}"
+    )
+    return summary, numeric_metrics
+
+
+def _automation_history_snapshot(app):
+    state_db = str(app.config.get("CHATOPS_STATE_DB") or "").strip()
+    if not state_db:
+        raise RuntimeError("state_db_unconfigured")
+    database_uri = Path(state_db).resolve().as_uri() + "?mode=ro"
+    connection = sqlite3.connect(database_uri, uri=True, timeout=5)
+    connection.row_factory = sqlite3.Row
+    try:
+        connection.execute("PRAGMA query_only = ON")
+        source_rows = connection.execute(
+            "SELECT request_id, action, status, incidents, slack_client_key, "
+            "execution_started_at, finished_at, result "
+            "FROM approval_requests WHERE execution_started_at IS NOT NULL "
+            "ORDER BY COALESCE(finished_at, execution_started_at) DESC"
+        ).fetchall()
+    finally:
+        connection.close()
+
+    rows = [dict(row) for row in source_rows]
+    groups = {"failover": [], "failback": [], "dump": []}
+    unclassified_executions = 0
+    for row in rows:
+        category, _reason = _execution_record_category(row)
+        if category in {"general_failover", "emergency_failover"}:
+            groups["failover"].append(row)
+        elif category == "failback":
+            groups["failback"].append(row)
+        elif category in {"general_dump", "emergency_dump"}:
+            groups["dump"].append(row)
+        elif row.get("execution_started_at"):
+            unclassified_executions += 1
+
+    now_epoch = time.time()
+    history = " || ".join(
+        _automation_history_operation_summary(label, groups[key], now_epoch)
+        for key, label in (("failover", "FAILOVER"), ("failback", "FAILBACK"), ("dump", "DUMP"))
+    )
+    history += f" || UNCLASSIFIED_EXECUTION_RECORDS={unclassified_executions}"
+    provisioning, numeric_metrics = _automation_provisioning_summary(app, rows)
+    for category in ("failover", "failback", "dump"):
+        status_code, timestamp_ms = _automation_operation_numeric_metrics(
+            groups[category], now_epoch
+        )
+        numeric_metrics[f"{category}_status"] = status_code
+        numeric_metrics[f"{category}_last_at"] = timestamp_ms
+    counts = {key: len(value) for key, value in groups.items()}
+    return history[:4000], provisioning[:2000], counts, numeric_metrics
+
+
+def _automation_zabbix_sender(key, value):
+    sender = os.environ.get("ZBX_SENDER_BIN", "/usr/bin/zabbix_sender")
+    if not os.path.isfile(sender) or not os.access(sender, os.X_OK):
+        raise RuntimeError("zabbix_sender_unavailable")
+    server = os.environ.get("ZBX_SERVER", "127.0.0.1")
+    port = os.environ.get("ZBX_SERVER_PORT", "10051")
+    host = os.environ.get("ZBX_DR_HOST", "Hospital_DR_Automation")
+    safe_value = re.sub(r"[\r\n\t]+", " ", str(value or ""))[:4000]
+    child_env = {
+        "PATH": os.environ.get("PATH", "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"),
+        "LANG": os.environ.get("LANG", "C.UTF-8"),
+        "HOME": os.environ.get("HOME", "/"),
+    }
+    completed = subprocess.run(
+        [sender, "-z", server, "-p", port, "-s", host, "-k", key, "-o", safe_value],
+        capture_output=True,
+        text=True,
+        timeout=8,
+        check=False,
+        env=child_env,
+    )
+    output = f"{completed.stdout}\n{completed.stderr}"
+    match = re.search(r"processed:\s*(\d+);\s*failed:\s*(\d+);\s*total:\s*(\d+)", output)
+    if completed.returncode != 0 or not match or match.group(1) != "1" or match.group(2) != "0":
+        raise RuntimeError("zabbix_sender_rejected_value")
+
+
+def publish_automation_history_metrics(app):
+    """Publish read-only ChatOps execution history to existing Zabbix trapper items."""
+    checked_at = int(time.time())
+    status = "COLLECTION_PASS"
+    try:
+        history, provisioning, counts, numeric_metrics = _automation_history_snapshot(app)
+        payloads = (
+            (AUTOMATION_HISTORY_ITEM_KEYS["history"], history),
+            (AUTOMATION_HISTORY_ITEM_KEYS["provisioning"], provisioning),
+            (AUTOMATION_HISTORY_ITEM_KEYS["collection_status"], f"COLLECTION_PASS checked_at={_automation_history_time(checked_at)}"),
+            (AUTOMATION_HISTORY_ITEM_KEYS["collection_checked_at"], str(checked_at)),
+        ) + tuple(
+            (AUTOMATION_NUMERIC_ITEM_KEYS[name], str(numeric_metrics[name]))
+            for name in AUTOMATION_NUMERIC_ITEM_KEYS
+        )
+        for key, value in payloads:
+            _automation_zabbix_sender(key, value)
+        print(
+            "[AUTOMATION HISTORY] COLLECTION_PASS "
+            f"failover={counts['failover']} failback={counts['failback']} dump={counts['dump']}",
+            flush=True,
+        )
+        return True
+    except Exception as exc:
+        status = f"COLLECTION_FAILED reason={type(exc).__name__} checked_at={_automation_history_time(checked_at)}"
+        print(f"[AUTOMATION HISTORY] COLLECTION_FAILED reason={type(exc).__name__}", flush=True)
+        try:
+            _automation_zabbix_sender(AUTOMATION_HISTORY_ITEM_KEYS["collection_status"], status)
+            _automation_zabbix_sender(AUTOMATION_HISTORY_ITEM_KEYS["collection_checked_at"], str(checked_at))
+        except Exception as publish_error:
+            print(
+                f"[AUTOMATION HISTORY] COLLECTION_STATUS_UNPUBLISHED reason={type(publish_error).__name__}",
+                flush=True,
+            )
+        return False
+
     measured = summary.get("total_rto_seconds")
     if measured is None or summary.get("rto_target_result") == "NOT_MEASURED":
         return "UNVERIFIED", "NOT_MEASURED; latest correlated run is incomplete"
@@ -3742,7 +4116,7 @@ def _read_demo_dump_restore_receipt(app, state):
         or receipt.get("slack_client_key") != provenance[0]
         or receipt.get("target") != {
             "instance_id": "AWS_RESOURCE_ID_REDACTED",
-            "private_ip": "IP_REDACTED",
+            "private_ip": "10.20.30.10",
             "port": 3306,
             "database": "hospital_db",
         }
@@ -7491,7 +7865,7 @@ def create_app(default_state_db, default_secret_file, default_script_root, test_
 
     @app.post("/chatops/synthetic-mysql-demo/request")
     def create_synthetic_mysql_demo_request():
-        if request.remote_addr not in ("IP_REDACTED", "::1"):
+        if request.remote_addr not in ("127.0.0.1", "::1"):
             return jsonify({"error": "synthetic demo request creation is localhost-only"}), 403
         payload = request.get_json(silent=True)
         if (
@@ -7570,7 +7944,7 @@ def create_app(default_state_db, default_secret_file, default_script_root, test_
 
     @app.post("/chatops/request")
     def create_request():
-        if request.remote_addr not in ("IP_REDACTED", "::1") and not app.config.get("ALLOW_REMOTE_REQUEST_CREATION", False):
+        if request.remote_addr not in ("127.0.0.1", "::1") and not app.config.get("ALLOW_REMOTE_REQUEST_CREATION", False):
             return jsonify({"error": "request creation is restricted to MSP localhost"}), 403
         if not admin_ids:
             return jsonify({
@@ -7817,13 +8191,13 @@ def create_app(default_state_db, default_secret_file, default_script_root, test_
     @app.get("/chatops/network-health")
     def network_health():
         """Return a redacted read-only network gate for the Zabbix guard."""
-        if request.remote_addr not in ("IP_REDACTED", "::1"):
+        if request.remote_addr not in ("127.0.0.1", "::1"):
             return jsonify({"status": "UNKNOWN", "reason": "network health is local-only"}), 403
         return jsonify(evaluate_current_network_health(app))
 
     @app.post("/wazuh/alert")
     def wazuh_alert():
-        if request.remote_addr not in ("IP_REDACTED", "::1"):
+        if request.remote_addr not in ("127.0.0.1", "::1"):
             return jsonify({"error": "Wazuh alert ingestion is restricted to MSP localhost"}), 403
         payload = request.get_json(silent=True)
         if not isinstance(payload, dict):
@@ -7837,7 +8211,7 @@ def create_app(default_state_db, default_secret_file, default_script_root, test_
 
     @app.post("/zabbix/alert")
     def zabbix_alert():
-        if request.remote_addr not in ("IP_REDACTED", "::1"):
+        if request.remote_addr not in ("127.0.0.1", "::1"):
             return jsonify({"error": "Zabbix alert ingestion is restricted to MSP localhost"}), 403
         payload = request.get_json(silent=True)
         if not isinstance(payload, dict):
@@ -8301,6 +8675,7 @@ def create_app(default_state_db, default_secret_file, default_script_root, test_
 def start_expiry_worker(app):
     def worker():
         next_zabbix_recheck = time.monotonic() + 2.0
+        next_automation_history_publish = 0.0
         while True:
             try:
                 expire_pending_requests(app)
@@ -8319,9 +8694,18 @@ def start_expiry_worker(app):
                     except Exception as exc:
                         print(f"[ZABBIX RECHECK ERROR] {type(exc).__name__}", flush=True)
                 next_zabbix_recheck = time.monotonic() + 60.0
+            if now >= next_automation_history_publish:
+                publish_automation_history_metrics(app)
+                next_automation_history_publish = time.monotonic() + AUTOMATION_HISTORY_PUBLISH_INTERVAL_SECONDS
             sleep_for = min(
                 max(1.0, float(app.config["EXPIRY_INTERVAL_SECONDS"])),
-                max(0.1, next_zabbix_recheck - time.monotonic()),
+                max(
+                    0.1,
+                    min(
+                        next_zabbix_recheck,
+                        next_automation_history_publish,
+                    ) - time.monotonic(),
+                ),
             )
             time.sleep(sleep_for)
 

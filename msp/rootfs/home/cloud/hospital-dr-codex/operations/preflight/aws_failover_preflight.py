@@ -60,7 +60,7 @@ CF_EMR_RECORD_DEFAULT = "4a4432c4e6290bcbd3dda5113ff8d560"
 WEB_DNS_NAME = "hospital-web.pp.ua"
 EMR_DNS_NAME = "emr.hospital-web.pp.ua"
 ONPREM_TUNNEL = "e6d3babc-8da8-45b4-85a3-a674302785fc.cfargotunnel.com"
-ONPREM_EMR_IP = "IP_REDACTED"
+ONPREM_EMR_IP = "1.209.148.228"
 RPO_TARGET_SECONDS = 900
 MONITORING_EVIDENCE_MAX_AGE_SECONDS = 120
 
@@ -433,9 +433,9 @@ def static_contract_checks(root: Path, values: dict[str, str]) -> list[dict[str,
     instance_contract_present = planner_consistent and all(
         fragment in terraform
         for fragment in (
-            'private_ip                  = "IP_REDACTED"',
-            'private_ip                  = "IP_REDACTED"',
-            'private_ip                  = "IP_REDACTED"',
+            'private_ip                  = "10.20.10.10"',
+            'private_ip                  = "10.20.20.10"',
+            'private_ip                  = "10.20.30.10"',
             'source_dest_check           = false',
             'tags                        = { Name = "Hospital-Real-Web-Server" }',
             'tags                        = { Name = "Hospital-DR-Doc-Server" }',
@@ -451,9 +451,9 @@ def static_contract_checks(root: Path, values: dict[str, str]) -> list[dict[str,
     network_contract = all(
         fragment in terraform
         for fragment in (
-            'private_ip                  = "IP_REDACTED"',
-            'private_ip                  = "IP_REDACTED"',
-            'private_ip                  = "IP_REDACTED"',
+            'private_ip                  = "10.20.10.10"',
+            'private_ip                  = "10.20.20.10"',
+            'private_ip                  = "10.20.30.10"',
             'aws_security_group.db_sg',
             'aws_security_group.doc_sg',
             'aws_security_group.web_sg',
@@ -945,7 +945,7 @@ def validate_network_snapshot(
                     continue
                 cidrs = {entry.get("CidrIp") for entry in rule.get("IpRanges", [])}
                 cidrs6 = {entry.get("CidrIpv6") for entry in rule.get("Ipv6Ranges", [])}
-                if "IP_REDACTED/0" in cidrs or "::/0" in cidrs6:
+                if "0.0.0.0/0" in cidrs or "::/0" in cidrs6:
                     return True
         return False
 

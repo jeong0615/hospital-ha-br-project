@@ -32,7 +32,7 @@ PREFLIGHT_WRAPPER = Path(__file__).with_name("isolated_dump_restore.sh")
 SERVICE_USER = "hospital_dr_service"
 SERVICE_PORT = 3307
 PRODUCTION_DB_INSTANCE_ID = "AWS_RESOURCE_ID_REDACTED"
-PROTECTED_DB_IPS = {"IP_REDACTED", "IP_REDACTED", "IP_REDACTED", "IP_REDACTED"}
+PROTECTED_DB_IPS = {"10.20.30.10", "192.168.200.4", "10.250.0.2", "10.251.0.2"}
 SHA256_RE = re.compile(r"[0-9a-fA-F]{64}\Z")
 INSTANCE_RE = re.compile(r"i-[0-9a-f]{8,17}\Z")
 VOLUME_RE = re.compile(r"vol-[0-9a-f]{8,32}\Z")
@@ -58,7 +58,7 @@ def _validate_private_endpoint(instance_id: str, private_ip: str) -> None:
         or address.is_multicast
         or address.is_unspecified
         or address.is_reserved
-        or address not in ipaddress.ip_network("IP_REDACTED/24")
+        or address not in ipaddress.ip_network("10.20.30.0/24")
         or private_ip in PROTECTED_DB_IPS
     ):
         raise CutoverError("ISOLATED_PRIVATE_IP_INVALID_OR_PROTECTED")

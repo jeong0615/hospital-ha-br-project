@@ -6,7 +6,7 @@ Wants=network-online.target docker.service
 [Service]
 Type=simple
 User=cloud
-Environment=ZABBIX_PROXY_ALLOWED_NETWORK=IP_REDACTED/16
+Environment=ZABBIX_PROXY_ALLOWED_NETWORK=172.18.0.0/16
 ExecStart=/usr/bin/python3 /home/cloud/dr_project/zabbix_host_proxy.py
 Restart=on-failure
 RestartSec=2

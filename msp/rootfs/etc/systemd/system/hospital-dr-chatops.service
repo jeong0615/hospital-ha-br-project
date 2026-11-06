@@ -23,7 +23,7 @@ StateDirectory=hospital-dr
 StateDirectoryMode=0750
 Environment=CHATOPS_STATE_DB=/var/lib/hospital-dr/chatops_state.sqlite3
 Environment=CHATOPS_EXECUTION_LOCK_FILE=/var/lib/hospital-dr/chatops.pipeline.lock
-ExecStart=/usr/bin/python3 -m gunicorn --chdir /home/cloud/dr_project --bind IP_REDACTED:5000 --workers 1 --threads 4 --timeout 120 --graceful-timeout 30 --error-logfile - wsgi:app
+ExecStart=/usr/bin/python3 -m gunicorn --chdir /home/cloud/dr_project --bind 127.0.0.1:5000 --workers 1 --threads 4 --timeout 120 --graceful-timeout 30 --error-logfile - wsgi:app
 Restart=on-failure
 RestartSec=5
 UMask=0077

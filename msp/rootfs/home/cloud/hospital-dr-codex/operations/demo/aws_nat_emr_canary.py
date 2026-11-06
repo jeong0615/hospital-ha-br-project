@@ -68,14 +68,14 @@ from operations.preflight.aws_web_canary_isolation import (  # noqa: E402
 EMR_ID = "AWS_RESOURCE_ID_REDACTED"
 EMR_ENI = "AWS_RESOURCE_ID_REDACTED"
 EMR_SUBNET = "AWS_RESOURCE_ID_REDACTED"
-EMR_PRIVATE_IP = "IP_REDACTED"
+EMR_PRIVATE_IP = "10.20.20.10"
 EMR_HOST_CIDR = f"{EMR_PRIVATE_IP}/32"
 EMR_ORIGINAL_SG = "AWS_RESOURCE_ID_REDACTED"
 WEB_ORIGINAL_SG = "AWS_RESOURCE_ID_REDACTED"
 DB_ID = "AWS_RESOURCE_ID_REDACTED"
 DB_ENI = "AWS_RESOURCE_ID_REDACTED"
 DB_SUBNET = "AWS_RESOURCE_ID_REDACTED"
-DB_PRIVATE_IP = "IP_REDACTED"
+DB_PRIVATE_IP = "10.20.30.10"
 DB_NAME_TAG = "Hospital-DR-DB-Server"
 WEB_NAME_TAG = "Hospital-Real-Web-Server"
 EMR_NAME_TAG = "Hospital-DR-Doc-Server"
@@ -772,7 +772,7 @@ def inspect_live(aws: AwsCli, *, probe_ips: list[str] | None = None,
             "nacl_paths": "PASS",
             "nat_route_target": "PASS",
             "nat_routes_active_before_start": "PENDING_LIVE_TEST" if any(
-                route_by_cidr[item].get("State") != "active" for item in ("IP_REDACTED/0", "IP_REDACTED/24")
+                route_by_cidr[item].get("State") != "active" for item in ("0.0.0.0/0", "10.251.0.0/24")
             ) else "PASS",
             "dns_firewall_walled_garden": dns_isolation["status"],
         },

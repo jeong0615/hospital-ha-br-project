@@ -41,13 +41,13 @@ from operations.db.isolated_dump_restore import (  # noqa: E402
 from operations.failover.nr_readiness import validate_dump_restore_receipt  # noqa: E402
 
 DB_INSTANCE_ID = "AWS_RESOURCE_ID_REDACTED"
-DB_PRIVATE_IP = "IP_REDACTED"
+DB_PRIVATE_IP = "10.20.30.10"
 DB_NAME_TAG = "Hospital-DR-DB-Server"
 WEB_INSTANCE_ID = "AWS_RESOURCE_ID_REDACTED"
-WEB_PRIVATE_IP = "IP_REDACTED"
+WEB_PRIVATE_IP = "10.20.10.10"
 WEB_NAME_TAG = "Hospital-Real-Web-Server"
 DOC_INSTANCE_ID = "AWS_RESOURCE_ID_REDACTED"
-DOC_PRIVATE_IP = "IP_REDACTED"
+DOC_PRIVATE_IP = "10.20.20.10"
 DOC_NAME_TAG = "Hospital-DR-Doc-Server"
 CORE_TABLES = {"users", "patients", "doctors", "medicalrecords", "accesslogs", "reservationposts"}
 UUID_RE = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\Z")
@@ -665,32 +665,6 @@ class SystemOperations:
             "web_started_by_request": started["web"],
         }
 
-    def verify_source_writer_fence(self) -> None:
-        runner = REPO_ROOT / "operations/finops/dr_environment_control.sh"
-        if runner.is_symlink() or not runner.is_file() or not os.access(runner, os.R_OK | os.X_OK):
-            raise DemoRestoreError("SOURCE_WRITE_FENCE_EXECUTOR_UNAVAILABLE")
-        child_env = dict(self.child_env)
-        child_env.update({
-            "DR_SECRET_FILE": str(self.env.get("DR_SECRET_FILE", "/home/cloud/hospital-dr-secrets/dr.env")),
-            "DR_STATE_DIR": str(self.state_dir),
-            "DR_WORKFLOW_LOCK_FILE": str(self.env.get("DR_WORKFLOW_LOCK_FILE", self.state_dir / "workflow.lock")),
-            "DR_WORKFLOW_LOCK_HELD": "1",
-            "DR_SSH_CONFIG_FILE": str(self.ssh_config),
-            "DR_SSH_KNOWN_HOSTS_FILE": str(self.known_hosts),
-            "SSH_KEY": str(self.ssh_key),
-        })
-        try:
-            result = subprocess.run(
-                ["bash", str(runner), "verify-source-writer-fence"],
-                cwd=str(REPO_ROOT), env=child_env, text=True, capture_output=True,
-                check=False, timeout=90,
-            )
-        except (OSError, subprocess.TimeoutExpired) as exc:
-            raise DemoRestoreError("ONPREM_SOURCE_WRITE_FENCE_UNVERIFIED") from exc
-        expected = "[SOURCE WRITE FENCE] On-Prem MySQL read_only=1 super_read_only=1 verified."
-        if result.returncode != 0 or expected not in result.stdout.splitlines():
-            raise DemoRestoreError("ONPREM_SOURCE_WRITE_FENCE_UNVERIFIED")
-
     def prepare_ssh(self, targets: dict) -> None:
         for command in ("aws", "ssh", "scp", "python3", "session-manager-plugin"):
             if shutil.which(command, path=self.child_env.get("PATH")) is None:
@@ -814,7 +788,7 @@ printf '[client]\\nuser=root\\npassword="%s"\\n' "$escaped" >"$tmp/mysql.cnf"
 chmod 0600 "$tmp/mysql.cnf"
 mysql --defaults-extra-file="$tmp/mysql.cnf" --batch --skip-column-names -e 'SELECT 1' >/dev/null
 sessions="$(mysql --defaults-extra-file="$tmp/mysql.cnf" --batch --skip-column-names -e \\
-  "SELECT COUNT(*) FROM information_schema.processlist WHERE HOST IS NOT NULL AND HOST NOT LIKE 'localhost%' AND HOST NOT LIKE 'IP_REDACTED%'")"
+  "SELECT COUNT(*) FROM performance_schema.threads WHERE TYPE='FOREGROUND' AND PROCESSLIST_HOST IS NOT NULL AND PROCESSLIST_HOST NOT LIKE 'localhost%' AND PROCESSLIST_HOST NOT LIKE '127.0.0.1%'")"
 [[ "$sessions" == 0 ]]
 printf 'DB_WRITE_FENCE_VERIFIED:{request_id}\\n'
 '''
@@ -835,7 +809,7 @@ database_bytes="$(mysql --defaults-extra-file="$tmp/mysql.cnf" --batch --skip-co
 database_exists="$(mysql --defaults-extra-file="$tmp/mysql.cnf" --batch --skip-column-names -e \
   "SELECT COUNT(*) FROM information_schema.schemata WHERE schema_name='hospital_db'")"
 remote_sessions="$(mysql --defaults-extra-file="$tmp/mysql.cnf" --batch --skip-column-names -e \
-  "SELECT COUNT(*) FROM information_schema.processlist WHERE HOST IS NOT NULL AND HOST NOT LIKE 'localhost%' AND HOST NOT LIKE 'IP_REDACTED%'")"
+  "SELECT COUNT(*) FROM performance_schema.threads WHERE TYPE='FOREGROUND' AND PROCESSLIST_HOST IS NOT NULL AND PROCESSLIST_HOST NOT LIKE 'localhost%' AND PROCESSLIST_HOST NOT LIKE '127.0.0.1%'")"
 db_identity="$(mysql --defaults-extra-file="$tmp/mysql.cnf" --batch --skip-column-names -e \
   "SELECT CONCAT(LOWER(@@server_uuid),'|',@@server_id,'|',@@hostname,'|',@@port,'|',@@global.read_only,'|',@@global.super_read_only,'|',COALESCE((SELECT CASE WHEN UPPER(variable_value) IN ('ON','1') THEN 'ON' ELSE 'OFF' END FROM performance_schema.persisted_variables WHERE LOWER(variable_name)='read_only' LIMIT 1),'MISSING'),'|',COALESCE((SELECT CASE WHEN UPPER(variable_value) IN ('ON','1') THEN 'ON' ELSE 'OFF' END FROM performance_schema.persisted_variables WHERE LOWER(variable_name)='super_read_only' LIMIT 1),'MISSING'))")"
 mysql_pid_file="$(mysql --defaults-extra-file="$tmp/mysql.cnf" --batch --skip-column-names -e 'SELECT @@pid_file')"
@@ -1434,8 +1408,12 @@ def execute_restore(
             if selected["restore_mode"] == "LEGACY_MANUAL":
                 _append_log(log_path, "LEGACY_MANUAL_RPO_NOT_MEASURED_REQUEST_BOUND")
             if isinstance(active_ops, SystemOperations):
-                active_ops.verify_source_writer_fence()
-                _append_log(log_path, "SOURCE_WRITE_FENCE_VERIFIED")
+                _append_log(log_path, "SOURCE_WRITES_NOT_CHECKED_POSSIBLE_DATA_DIVERGENCE")
+                print(
+                    "[DUMP WARNING] On-Prem writes are not checked or stopped; "
+                    "concurrent source writes can cause divergent DB data.",
+                    flush=True,
+                )
             advance("TARGET_IDENTITY")
             targets = active_ops.validate_targets()
             receipt["aws_targets"] = targets

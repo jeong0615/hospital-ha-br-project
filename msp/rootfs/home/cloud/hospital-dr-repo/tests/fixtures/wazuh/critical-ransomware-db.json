@@ -8,9 +8,9 @@
     "groups": ["ransomware", "syscheck"],
     "mitre": [{"id": "T1486", "name": "Data Encrypted for Impact"}]
   },
-  "agent": {"id": "003", "name": "DB_Server", "ip": "IP_REDACTED"},
+  "agent": {"id": "003", "name": "DB_Server", "ip": "10.10.10.22"},
   "decoder": {"name": "syscheck"},
-  "data": {"srcip": "IP_REDACTED", "dstip": "IP_REDACTED"},
+  "data": {"srcip": "10.10.10.22", "dstip": "10.10.10.30"},
   "location": "/var/ossec/logs/alerts/alerts.json",
   "full_log": "internal-detail-should-not-be-forwarded"
 }

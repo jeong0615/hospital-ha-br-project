@@ -63,7 +63,7 @@ echo "=================================================="
 
 if [ -z "$ONPREM_DOC_SSH" ]; then
   echo "[DOC FAILBACK BLOCKED] Required variable is missing: ONPREM_DOC_SSH"
-  echo "Example: ONPREM_DOC_SSH='operator@IP_REDACTED'"
+  echo "Example: ONPREM_DOC_SSH='operator@192.168.100.174'"
   exit 2
 fi
 
@@ -83,7 +83,7 @@ WEB_HOST=$(awk '/^\[web_servers\]/{getline; print $1; exit}' "$INVENTORY")
 SSH_KEY=$(awk '/^\[web_servers\]/{getline; for (i=1;i<=NF;i++) if ($i ~ /ansible_ssh_private_key_file=/) {split($i,a,"="); print a[2]; exit}}' "$INVENTORY")
 scp -i "$SSH_KEY" "${SSH_OPTS[@]}" \
   -o "ProxyCommand=ssh -i ${SSH_KEY} ${SSH_OPTS[*]} -W %h:%p ubuntu@${WEB_HOST}" \
-  ubuntu@IP_REDACTED:/tmp/hospital-emr-failback.tar.gz "$TMP_ARCHIVE"
+  ubuntu@10.20.20.10:/tmp/hospital-emr-failback.tar.gz "$TMP_ARCHIVE"
 
 echo "[DOC FAILBACK] Uploading Doc archive to on-premises Doc server."
 scp -i "$ONPREM_DOC_SSH_KEY" "${SSH_OPTS[@]}" "$TMP_ARCHIVE" "${ONPREM_DOC_SSH}:/tmp/hospital-emr-failback.tar.gz"
@@ -105,7 +105,7 @@ echo "[DOC FAILBACK] Installing dependencies and restarting on-premises Doc serv
 ssh -n -i "$ONPREM_DOC_SSH_KEY" "${SSH_OPTS[@]}" "$ONPREM_DOC_SSH" "cd '${ONPREM_DOC_PATH}' && rm -f package-lock.json && npm install --omit=dev body-parser@1.20.3 cors@2.8.5 express@4.21.2 mysql2@2.3.3 && if command -v pm2 >/dev/null 2>&1; then pm2 delete hospital-emr || true; PORT='${ONPREM_DOC_PORT}' pm2 start server.js --name hospital-emr --update-env; pm2 save; else pids=\$(lsof -ti tcp:${ONPREM_DOC_PORT} 2>/dev/null || true); if [ -n \"\$pids\" ]; then kill \$pids || true; sleep 1; fi; rm -f /tmp/hospital-emr.log; setsid -f env PORT='${ONPREM_DOC_PORT}' DB_HOST='${ONPREM_DOC_DB_HOST}' DB_PORT='${ONPREM_DOC_DB_PORT}' DB_USER='${ONPREM_DOC_DB_USER}' DB_PASSWORD='${ONPREM_DOC_DB_PASSWORD}' DB_NAME='${ONPREM_DOC_DB_NAME}' node '${ONPREM_DOC_PATH}/server.js' > /tmp/hospital-emr.log 2>&1; sleep 2; fi"
 
 echo "[DOC FAILBACK] Verifying on-premises Doc service."
-ssh -n -i "$ONPREM_DOC_SSH_KEY" "${SSH_OPTS[@]}" "$ONPREM_DOC_SSH" "test -f '${ONPREM_DOC_PATH}/server.js' && curl -fsS --connect-timeout 5 --max-time 15 http://IP_REDACTED:${ONPREM_DOC_PORT}/ >/dev/null"
+ssh -n -i "$ONPREM_DOC_SSH_KEY" "${SSH_OPTS[@]}" "$ONPREM_DOC_SSH" "test -f '${ONPREM_DOC_PATH}/server.js' && curl -fsS --connect-timeout 5 --max-time 15 http://127.0.0.1:${ONPREM_DOC_PORT}/ >/dev/null"
 
 dr_timing_end doc_sync_internal "$doc_sync_timing_start"
 echo "[DOC FAILBACK] Doc failback sync completed."

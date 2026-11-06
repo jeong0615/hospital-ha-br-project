@@ -59,10 +59,10 @@ READINESS_ROOT_DEFAULT = Path("/var/lib/hospital-dr/dump-public-readiness")
 DEFAULT_DR_EIP = "AWS_PUBLIC_IP_REDACTED"
 DEFAULT_CHATOPS_STATE_DB = Path("/var/lib/hospital-dr/chatops_state.sqlite3")
 EXPECTED_WEB_INSTANCE = "AWS_RESOURCE_ID_REDACTED"
-EXPECTED_WEB_PRIVATE_IP = "IP_REDACTED"
-EXPECTED_DOC_PRIVATE_IP = "IP_REDACTED"
+EXPECTED_WEB_PRIVATE_IP = "10.20.10.10"
+EXPECTED_DOC_PRIVATE_IP = "10.20.20.10"
 EXPECTED_PRODUCTION_DB_PRIVATE_IPS = {
-    "IP_REDACTED", "IP_REDACTED", "IP_REDACTED", "IP_REDACTED",
+    "10.20.30.10", "192.168.200.4", "10.250.0.2", "10.251.0.2",
 }
 MIN_TTL_SECONDS = 60
 MAX_TTL_SECONDS = 1800
@@ -245,7 +245,7 @@ def validate_request(args: argparse.Namespace, env: Mapping[str, str]) -> None:
     if (
         not isinstance(isolated_ip, ipaddress.IPv4Address)
         or not isolated_ip.is_private
-        or isolated_ip not in ipaddress.ip_network("IP_REDACTED/24")
+        or isolated_ip not in ipaddress.ip_network("10.20.30.0/24")
         or not dr_eip.is_global
         or str(dr_eip) != str(args.dr_web_eip)
     ):
@@ -389,7 +389,7 @@ def validate_approved_chatops_request(
                 grant = latest.get("existing_dr_overwrite_authorization")
                 target = {
                     "instance_id": "AWS_RESOURCE_ID_REDACTED",
-                    "private_ip": "IP_REDACTED",
+                    "private_ip": "10.20.30.10",
                     "port": 3306,
                     "database": "hospital_db",
                 }

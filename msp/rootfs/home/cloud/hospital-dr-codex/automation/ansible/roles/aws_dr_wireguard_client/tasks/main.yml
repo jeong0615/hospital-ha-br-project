@@ -28,7 +28,7 @@
   when: aws_dr_wg_enabled | bool
 
 - name: Check for the legacy AWS DB route before cutover
-  ansible.builtin.command: ip route show IP_REDACTED/32
+  ansible.builtin.command: ip route show 10.20.30.10/32
   register: aws_dr_wg_legacy_route
   changed_when: false
   failed_when: false

@@ -18,7 +18,7 @@
   lineinfile:
     path: /etc/mysql/mysql.conf.d/mysqld.cnf
     regexp: '^bind-address'
-    line: 'bind-address = IP_REDACTED'
+    line: 'bind-address = 0.0.0.0'
 
 - name: "Ensure MySQL remote administrative access for DR validation / DR 검증용 MySQL 원격 관리자 접근 구성"
   shell: |

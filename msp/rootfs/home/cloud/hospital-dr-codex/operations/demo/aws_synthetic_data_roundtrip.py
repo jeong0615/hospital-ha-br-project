@@ -178,14 +178,14 @@ def _local_mysql() -> tuple[Path, dict[str, str], subprocess.Popen, object]:
         shutil.rmtree(root, ignore_errors=True)
         raise
     with socket.socket() as listener:
-        listener.bind(("IP_REDACTED", 0))
+        listener.bind(("127.0.0.1", 0))
         port = listener.getsockname()[1]
     log = (root / "mysqld.log").open("ab")
     process = subprocess.Popen(
         [
             mysqld, "--no-defaults", f"--basedir={basedir}", f"--datadir={datadir}",
             f"--socket={datadir / 'mysql.sock'}", f"--pid-file={datadir / 'mysql.pid'}",
-            f"--log-error={datadir / 'error.log'}", "--bind-address=IP_REDACTED",
+            f"--log-error={datadir / 'error.log'}", "--bind-address=127.0.0.1",
             f"--port={port}", "--mysqlx=0", "--skip-networking",
         ],
         env=env,

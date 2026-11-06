@@ -14,7 +14,7 @@
           - dump_readonly_health_instance_id is match('^i-[0-9a-f]{8,17}$')
           - dump_readonly_health_instance_id != 'AWS_RESOURCE_ID_REDACTED'
           - dump_readonly_health_private_ip is match('^10[.]20[.]30[.](?:[1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-4])$')
-          - dump_readonly_health_private_ip not in ['IP_REDACTED', 'IP_REDACTED', 'IP_REDACTED', 'IP_REDACTED']
+          - dump_readonly_health_private_ip not in ['10.20.30.10', '192.168.200.4', '10.250.0.2', '10.251.0.2']
           - dump_readonly_health_data_volume_id is match('^vol-[0-9a-f]{8,32}$')
           - dump_readonly_health_stage_volume_id is match('^vol-[0-9a-f]{8,32}$')
           - dump_readonly_health_data_volume_id != dump_readonly_health_stage_volume_id
@@ -173,7 +173,7 @@
           - dump_readonly_health_prepared_container.stdout.split('|')[0] == 'false'
           - dump_readonly_health_prepared_container.stdout.split('|')[1] == dump_readonly_health_cutover_id
           - dump_readonly_health_prepared_container.stdout.split('|')[2] == 'no'
-          - (dump_readonly_health_prepared_container.stdout.split('|')[3] | from_json)['3000/tcp'][0]['HostIp'] == 'IP_REDACTED'
+          - (dump_readonly_health_prepared_container.stdout.split('|')[3] | from_json)['3000/tcp'][0]['HostIp'] == '127.0.0.1'
           - (dump_readonly_health_prepared_container.stdout.split('|')[3] | from_json)['3000/tcp'][0]['HostPort'] == '3000'
         fail_msg: App container identity or protected restart/port settings changed.
       no_log: true
@@ -488,7 +488,7 @@
           - dump_readonly_health_prepared.stdout.split('|')[0] == 'false'
           - dump_readonly_health_prepared.stdout.split('|')[1] == dump_readonly_health_cutover_id
           - dump_readonly_health_prepared.stdout.split('|')[2] == 'no'
-          - (dump_readonly_health_prepared.stdout.split('|')[3] | from_json)['3000/tcp'][0]['HostIp'] == 'IP_REDACTED'
+          - (dump_readonly_health_prepared.stdout.split('|')[3] | from_json)['3000/tcp'][0]['HostIp'] == '127.0.0.1'
           - (dump_readonly_health_prepared.stdout.split('|')[3] | from_json)['3000/tcp'][0]['HostPort'] == '3000'
           - hostvars['isolated-dump-restore'].dump_readonly_health_db_identity.server_uuid is defined
         fail_msg: App or database identity changed after the fresh DNS Preflight.

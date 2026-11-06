@@ -5,8 +5,8 @@
 const mysql = require("/app/node_modules/mysql2/promise");
 
 const APP_SOURCE_IP = {
-  web: "IP_REDACTED",
-  emr: "IP_REDACTED",
+  web: "10.20.10.10",
+  emr: "10.20.20.10",
 };
 
 function fail(code) {
@@ -47,7 +47,7 @@ async function main() {
   if (
     !expectedSource ||
     !/^10\.20\.30\.(?:[1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-4])$/.test(expectedHost || "") ||
-    expectedHost === "IP_REDACTED" ||
+    expectedHost === "10.20.30.10" ||
     !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(expectedUuid) ||
     process.env.DB_HOST !== expectedHost ||
     Number(process.env.DB_PORT) !== expectedPort ||

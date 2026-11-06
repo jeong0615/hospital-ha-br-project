@@ -37,7 +37,7 @@ DEFAULT_FRESHNESS_SECONDS = 300
 ONPREM_CORE_ITEMS = {
     "Hospital DR Web Core": ("web.test.fail[Hospital DR Web Core]", "0"),
     "Hospital DR Doc Core": ("web.test.fail[Hospital DR Doc Core]", "0"),
-    "Hospital DR DB Core": ("net.tcp.service[tcp,IP_REDACTED,3306]", "1"),
+    "Hospital DR DB Core": ("net.tcp.service[tcp,192.168.200.4,3306]", "1"),
 }
 ONPREM_PROBE_FRESHNESS_SECONDS = 90
 

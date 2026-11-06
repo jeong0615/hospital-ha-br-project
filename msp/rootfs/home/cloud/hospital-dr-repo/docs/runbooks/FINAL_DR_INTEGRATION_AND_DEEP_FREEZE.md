@@ -92,7 +92,7 @@ For the final NR test, these non-secret values must be explicit:
 ```text
 DB_NR_ENABLED=true
 DB_REPL_MODE=position
-DB_SOURCE_HOST=IP_REDACTED
+DB_SOURCE_HOST=1.209.148.228
 DB_SOURCE_PORT=3306
 DB_SOURCE_LOG_FILE=<current source binlog file>
 DB_SOURCE_LOG_POS=<current source binlog position>
@@ -108,7 +108,7 @@ Before the AWS test window:
 
 1. Confirm that the on-premise DB listens on TCP 3306.
 2. Confirm pfSense forwards the public DB endpoint to the on-premise DB.
-3. Allow only `IP_REDACTED/32` to the forwarded TCP 3306 service.
+3. Allow only `15.165.140.84/32` to the forwarded TCP 3306 service.
 4. Confirm the MySQL `repl` account is allowed from the effective source.
 5. Record `SHOW MASTER STATUS\G` immediately before the NR test.
 6. Confirm the MSP management path separately from the AWS DB path.
@@ -116,7 +116,7 @@ Before the AWS test window:
 After the AWS DR DB is running, the first live network gate is:
 
 ```bash
-nc -vz -w 5 IP_REDACTED 3306
+nc -vz -w 5 1.209.148.228 3306
 ```
 
 If it fails, stop. Do not open the AWS Security Group to `AWS_PUBLIC_IP_REDACTED/0`.
@@ -156,7 +156,7 @@ cd /home/cloud/hospital-dr-terraform
 source /home/cloud/hospital-dr-secrets/dr.env
 export DB_NR_ENABLED=true
 export DB_REPL_MODE=position
-export DB_SOURCE_HOST=IP_REDACTED
+export DB_SOURCE_HOST=1.209.148.228
 export DB_SOURCE_PORT=3306
 export DB_PROMOTE_ON_FAILOVER=true
 
@@ -170,7 +170,7 @@ origin health checks.
 
 NR is accepted only when:
 
-- DR DB to `IP_REDACTED:3306` succeeds;
+- DR DB to `1.209.148.228:3306` succeeds;
 - `DB_REPL_MODE=position` was explicitly set;
 - `Replica_IO_Running=Yes` and `Replica_SQL_Running=Yes` (or legacy
   `Slave_*` equivalents) are reported;
@@ -213,7 +213,7 @@ source /home/cloud/hospital-dr-secrets/dr.env
 export ONPREM_DOC_SSH=<on-premise-doc-user-and-reachable-address>
 export ONPREM_DOC_PATH=/home/hoseo/hospital_emr
 export ONPREM_DOC_PORT=5000
-export ONPREM_DB_HOST=IP_REDACTED
+export ONPREM_DB_HOST=1.209.148.228
 export ONPREM_DB_PORT=3306
 export DB_FAILBACK_CONFIRM=OVERWRITE_ONPREM_DB
 export DOC_FAILBACK_CONFIRM=SYNC_DOC_TO_ONPREM
@@ -340,7 +340,7 @@ configuration, and test evidence first.
 - NAT EIP, only after recording that deletion changes the pfSense allowlist.
 
 Deleting the preserved NAT EIP saves its idle public IPv4 cost but invalidates
-the fixed `IP_REDACTED/32` rule. Treat it as a deliberate design decision.
+the fixed `15.165.140.84/32` rule. Treat it as a deliberate design decision.
 
 ## 11. Rebuild One Week Before Demonstration
 

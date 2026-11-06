@@ -47,7 +47,7 @@ private_egress_mode=web_nat_instance
 aws_web_nat_instance_enabled=true
 ```
 
-This plan is allowed to repair only the private `IP_REDACTED/0` route to
+This plan is allowed to repair only the private `0.0.0.0/0` route to
 `AWS_RESOURCE_ID_REDACTED`. The plan guard rejects NAT Gateway creation,
 recreation, destruction, EIP changes, EC2 changes, and all unrelated changes.
 
@@ -199,7 +199,7 @@ From DB and EMR, validate only the required runtime paths:
 - S3 access if required
 - SSM health
 - application dependency checks
-- WireGuard/NR path and `IP_REDACTED -> IP_REDACTED:3306`
+- WireGuard/NR path and `10.20.30.10 -> 10.251.0.2:3306`
 
 Do not change MySQL replication during this validation.
 

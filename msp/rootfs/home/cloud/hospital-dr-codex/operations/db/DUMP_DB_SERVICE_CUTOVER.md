@@ -3,7 +3,7 @@
 `isolated_dump_restore.sh service-cutover` is a separate, explicitly gated
 operation. It does not run Terraform, the normal `run_demo.sh` workflow, DNS
 helpers, or DR state transitions. Normal Failover continues to deploy Web/EMR
-with `IP_REDACTED:3306`.
+with `10.20.30.10:3306`.
 
 ## Preconditions
 
@@ -32,7 +32,7 @@ before touching either app host. Ansible then:
 
 1. Requires exactly one Web and one EMR target, healthy running containers,
    the managed loopback port/restart contract, and current app env files that
-   point to the known existing DR DB `IP_REDACTED:3306`.
+   point to the known existing DR DB `10.20.30.10:3306`.
 2. Stores each exact old env file root-owned mode `0600` in
    `/var/lib/hospital-dr/db-endpoint-cutovers/<UUID>/` and preserves the old
    Docker container by renaming it; the previous container is not deleted.

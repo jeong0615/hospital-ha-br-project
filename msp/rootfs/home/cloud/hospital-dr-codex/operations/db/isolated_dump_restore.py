@@ -41,8 +41,8 @@ ISOLATED_SG_NAME = "hospital-dr-dump-restore-isolated-sg"
 ISOLATED_SERVICE_SG_NAME = "hospital-dr-dump-restore-service-sg"
 WEB_NAME = "Hospital-Real-Web-Server"
 DOC_NAME = "Hospital-DR-Doc-Server"
-WEB_PRIVATE_IP = "IP_REDACTED"
-DOC_PRIVATE_IP = "IP_REDACTED"
+WEB_PRIVATE_IP = "10.20.10.10"
+DOC_PRIVATE_IP = "10.20.20.10"
 ISOLATED_SERVICE_PORT = 3307
 BACKUP_NAME_RE = re.compile(r"db_backup_[0-9]{8}_[0-9]{4,6}\.sql\.gz\.enc\Z")
 SHA256_RE = re.compile(r"[0-9a-fA-F]{64}\Z")
@@ -193,7 +193,7 @@ def _sg_egress_is_restricted(group: dict) -> bool:
         if (
             rule.get("IpProtocol") != "tcp"
             or rule.get("FromPort") != rule.get("ToPort")
-            or rule.get("IpRanges") != [{"CidrIp": "IP_REDACTED/0"}]
+            or rule.get("IpRanges") != [{"CidrIp": "0.0.0.0/0"}]
             or rule.get("Ipv6Ranges")
             or rule.get("UserIdGroupPairs")
             or rule.get("PrefixListIds")
@@ -241,7 +241,7 @@ def validate_aws_isolated_target(
         raise PreflightError("ISOLATED_INSTANCE_ID_INVALID")
     if not re.fullmatch(r"10\.20\.30\.(?:[1-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-4])", private_ip):
         raise PreflightError("ISOLATED_PRIVATE_IP_INVALID")
-    if private_ip == "IP_REDACTED" or data_volume_id == stage_volume_id:
+    if private_ip == "10.20.30.10" or data_volume_id == stage_volume_id:
         raise PreflightError("ISOLATED_RESOURCE_COLLISION")
     if not all(re.fullmatch(r"vol-[0-9a-f]{8,32}", value) for value in (data_volume_id, stage_volume_id)):
         raise PreflightError("ISOLATED_VOLUME_ID_INVALID")

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-CHATOPS_REQUEST_URL="${CHATOPS_REQUEST_URL:-http://IP_REDACTED:5000/chatops/request}"
+CHATOPS_REQUEST_URL="${CHATOPS_REQUEST_URL:-http://127.0.0.1:5000/chatops/request}"
 # Compatibility fields are retained in the payload, but Demo Freeze no
 # longer waits for a sustained Recovery window before creating Failback.
 STABILITY_SECONDS="0"

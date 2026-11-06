@@ -57,7 +57,7 @@ EXISTING_DR_OVERWRITE_AUTH_VERSION = 1
 EXISTING_DR_OVERWRITE_SCOPE = "REPLACE_EXISTING_AWS_DR_HOSPITAL_DB"
 EXISTING_DR_OVERWRITE_TARGET = {
     "instance_id": "AWS_RESOURCE_ID_REDACTED",
-    "private_ip": "IP_REDACTED",
+    "private_ip": "10.20.30.10",
     "port": 3306,
     "database": "hospital_db",
 }
@@ -339,7 +339,7 @@ def _validate_approval(
     if conditional_fallback:
         target = {
             "instance_id": "AWS_RESOURCE_ID_REDACTED",
-            "private_ip": "IP_REDACTED",
+            "private_ip": "10.20.30.10",
             "port": 3306,
             "database": "hospital_db",
         }
@@ -1033,7 +1033,7 @@ def execute_dump_failover(
     if target["data_volume_id"] == target["stage_volume_id"]:
         raise DumpExecutorError("ISOLATED_TARGET_VOLUME_COLLISION")
     if target["instance_id"] == "AWS_RESOURCE_ID_REDACTED" or target["private_ip"] in {
-        "IP_REDACTED", "IP_REDACTED", "IP_REDACTED", "IP_REDACTED",
+        "10.20.30.10", "192.168.200.4", "10.250.0.2", "10.251.0.2",
     }:
         raise DumpExecutorError("PROTECTED_DATABASE_TARGET_FORBIDDEN")
 

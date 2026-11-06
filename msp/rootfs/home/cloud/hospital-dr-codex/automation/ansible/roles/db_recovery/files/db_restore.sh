@@ -42,7 +42,7 @@ if [[ "${DEMO_DUMP_RESTORE_MODE:-false}" == "true" ]]; then
     [[ "$expected_sha" =~ ^[0-9a-fA-F]{64}$ ]] || fail_demo_restore EXPECTED_CHECKSUM_INVALID
     [[ "$expected_instance" == "AWS_RESOURCE_ID_REDACTED" ]] \
         || fail_demo_restore DR_DATABASE_INSTANCE_ID_MISMATCH
-    [[ "$expected_private_ip" == "IP_REDACTED" ]] \
+    [[ "$expected_private_ip" == "10.20.30.10" ]] \
         || fail_demo_restore DR_DATABASE_PRIVATE_IP_MISMATCH
     demo_key="$PASS_PHRASE"
     demo_root_secret="$MYSQL_ROOT_PASS"
@@ -96,7 +96,7 @@ import sys
 import urllib.request
 
 expected_id, expected_ip = sys.argv[1:]
-base = "http://IP_REDACTED/latest"
+base = "http://169.254.169.254/latest"
 try:
     request = urllib.request.Request(
         f"{base}/api/token",
@@ -261,7 +261,7 @@ PY
         printf 'REPLICA_FENCE|STOPPED|PERSISTED_SKIP_REPLICA_START\n'
     fi
     remote_sessions="$(mysql --defaults-extra-file="$defaults_file" --batch --skip-column-names -e \
-        "SELECT COUNT(*) FROM information_schema.processlist WHERE HOST IS NOT NULL AND HOST NOT LIKE 'localhost%' AND HOST NOT LIKE 'IP_REDACTED%'" 2>/dev/null)" \
+        "SELECT COUNT(*) FROM performance_schema.threads WHERE TYPE='FOREGROUND' AND PROCESSLIST_HOST IS NOT NULL AND PROCESSLIST_HOST NOT LIKE 'localhost%' AND PROCESSLIST_HOST NOT LIKE '127.0.0.1%'" 2>/dev/null)" \
         || fail_demo_restore DATABASE_SESSION_CHECK_FAILED
     [[ "$remote_sessions" == "0" ]] || fail_demo_restore REMOTE_DATABASE_WRITER_SESSION_PRESENT
     restore_write_window_open=1

@@ -603,22 +603,22 @@ trap 'rm -rf "$tmp"' EXIT
 printf 'X-Hospital-DR-Probe: %s\\n' '{token}' > "$tmp/probe-header"
 chmod 0600 "$tmp/probe-header"
 for host in {WEB_DOMAIN} {EMR_DOMAIN}; do
-  status="$(curl --silent --show-error --max-time 10 --resolve "$host:443:IP_REDACTED" \\
+  status="$(curl --silent --show-error --max-time 10 --resolve "$host:443:127.0.0.1" \\
     --cacert /etc/nginx/ssl/hospital-web.crt --header "@$tmp/probe-header" \\
     -D "$tmp/headers" -o "$tmp/body" -w '%{{http_code}}' "https://$host/__hospital_dr/health" 2>/dev/null || true)"
   test "$status" = 204
   test ! -s "$tmp/body"
   grep -qi '^Cache-Control:.*no-store' "$tmp/headers"
-  status="$(curl --silent --max-time 10 --resolve "$host:443:IP_REDACTED" \\
+  status="$(curl --silent --max-time 10 --resolve "$host:443:127.0.0.1" \\
     --cacert /etc/nginx/ssl/hospital-web.crt -o /dev/null -w '%{{http_code}}' "https://$host/" 2>/dev/null || true)"
   test "$status" = 503
 done
-status="$(curl --silent --max-time 10 --resolve "{WEB_DOMAIN}:443:IP_REDACTED" \\
+status="$(curl --silent --max-time 10 --resolve "{WEB_DOMAIN}:443:127.0.0.1" \\
   --cacert /etc/nginx/ssl/hospital-web.crt --header "@$tmp/probe-header" \\
   -o "$tmp/body" -w '%{{http_code}}' "https://{WEB_DOMAIN}/emr/__hospital_dr/health" 2>/dev/null || true)"
 test "$status" = 204 && test ! -s "$tmp/body"
 for path in /emr/ /api/patients; do
-  status="$(curl --silent --max-time 10 --resolve "{WEB_DOMAIN}:443:IP_REDACTED" \\
+  status="$(curl --silent --max-time 10 --resolve "{WEB_DOMAIN}:443:127.0.0.1" \\
     --cacert /etc/nginx/ssl/hospital-web.crt -o "$tmp/body" -w '%{{http_code}}' "https://{WEB_DOMAIN}$path" 2>/dev/null || true)"
   test "$status" = 503
 done
@@ -898,7 +898,7 @@ def _require_onprem_write_fence(operations, env: Mapping[str, str]) -> None:
     if (
         not isinstance(evidence, dict)
         or evidence.get("probe_source") != "LIVE_MYSQL_QUERY"
-        or evidence.get("host") != "IP_REDACTED"
+        or evidence.get("host") != "192.168.200.4"
         or evidence.get("port") != 3306
         or not isinstance(server_uuid, str) or server_uuid.lower() != expected_uuid
         or type(evidence.get("read_only")) is not int or evidence.get("read_only") != 1
@@ -1045,7 +1045,7 @@ def _execute_finalization_once(
             emit("ONPREM_WRITE_FENCE", "STARTED")
             _require_onprem_write_fence(operations, env)
             result["onprem_write_fence"] = {
-                "host": "IP_REDACTED", "port": 3306,
+                "host": "192.168.200.4", "port": 3306,
                 "server_uuid": str(env["ONPREM_DB_SERVER_UUID_EXPECTED"]).lower(),
                 "read_only": True, "super_read_only": True,
                 "verified_at_utc": clock(),
@@ -1112,7 +1112,7 @@ def _execute_finalization_once(
             emit("ONPREM_WRITE_FENCE_RECHECK", "STARTED")
             _require_onprem_write_fence(operations, env)
             result["onprem_write_fence"] = {
-                "host": "IP_REDACTED", "port": 3306,
+                "host": "192.168.200.4", "port": 3306,
                 "server_uuid": str(env["ONPREM_DB_SERVER_UUID_EXPECTED"]).lower(),
                 "read_only": True, "super_read_only": True,
                 "verified_at_utc": clock(),

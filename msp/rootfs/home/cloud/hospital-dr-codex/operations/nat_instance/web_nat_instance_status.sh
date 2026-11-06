@@ -7,7 +7,7 @@ set -euo pipefail
 EXPECTED_REGION="${AWS_REGION:-ap-northeast-2}"
 EXPECTED_VPC_ID="AWS_RESOURCE_ID_REDACTED"
 EXPECTED_WEB_INSTANCE_ID="AWS_RESOURCE_ID_REDACTED"
-EXPECTED_WEB_PRIVATE_IP="IP_REDACTED"
+EXPECTED_WEB_PRIVATE_IP="10.20.10.10"
 EXPECTED_WEB_PUBLIC_IP="AWS_PUBLIC_IP_REDACTED"
 EXPECTED_WEB_ENI="AWS_RESOURCE_ID_REDACTED"
 EXPECTED_WEB_SUBNET_ID="AWS_RESOURCE_ID_REDACTED"
@@ -125,7 +125,7 @@ if [ "$LOCAL_CHECK" -eq 1 ]; then
   iptables -S "$FORWARD_CHAIN" >/dev/null 2>&1 && forward_rule=PRESENT || forward_rule=ABSENT
   iptables -t nat -S "$POSTROUTING_CHAIN" >/dev/null 2>&1 && nat_rule=PRESENT || nat_rule=ABSENT
   ip link show "$EXPECTED_WEB_NAT_INTERFACE" >/dev/null 2>&1 && wg_interface=UP_OR_PRESENT || wg_interface=ABSENT
-  wg_route="$(ip route show IP_REDACTED/24 2>/dev/null | tr '\n' ' ' || true)"
+  wg_route="$(ip route show 10.251.0.0/24 2>/dev/null | tr '\n' ' ' || true)"
   echo "IP_FORWARD=${ip_forward}"
   echo "WEB_FIREWALL_BACKEND=${firewall_backend}"
   echo "NAT_RULE_PRESENT=${nat_rule}"

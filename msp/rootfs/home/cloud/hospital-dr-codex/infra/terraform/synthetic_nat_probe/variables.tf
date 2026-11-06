@@ -50,7 +50,7 @@ variable "availability_zone" {
 
 variable "vpc_cidr" {
   type    = string
-  default = "IP_REDACTED/16"
+  default = "10.253.0.0/16"
   validation {
     condition     = !var.enable_probe || (can(cidrhost(var.vpc_cidr, 0)) && !strcontains(var.vpc_cidr, ":"))
     error_message = "vpc_cidr must be an explicit IPv4 CIDR."
@@ -59,7 +59,7 @@ variable "vpc_cidr" {
 
 variable "subnet_cidr" {
   type    = string
-  default = "IP_REDACTED/24"
+  default = "10.253.1.0/24"
   validation {
     condition     = !var.enable_probe || (can(cidrhost(var.subnet_cidr, 0)) && !strcontains(var.subnet_cidr, ":"))
     error_message = "subnet_cidr must be an explicit IPv4 CIDR."
@@ -68,7 +68,7 @@ variable "subnet_cidr" {
 
 variable "probe_private_ip" {
   type    = string
-  default = "IP_REDACTED"
+  default = "10.253.1.10"
   validation {
     condition     = !var.enable_probe || can(cidrhost("${var.probe_private_ip}/32", 0))
     error_message = "probe_private_ip must be an explicit IPv4 address."

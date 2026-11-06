@@ -20,7 +20,7 @@ start.
 Before starting either app, it installs a dedicated persistent nftables input
 fence on both app hosts. Non-loopback TCP 80/443 are dropped; the fence does
 not change other nftables tables. Docker's app port must remain bound only to
-`IP_REDACTED:3000`, and the exact cutover containers are changed to restart
+`127.0.0.1:3000`, and the exact cutover containers are changed to restart
 policy `no`. The systemd oneshot re-applies the fence before network services
 and Docker at boot. The fence remains installed after the Health Gate; this
 operation does not remove it.

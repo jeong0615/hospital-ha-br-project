@@ -131,7 +131,7 @@ def serve(domain: str, source_file: Path, certificate: Path, private_key: Path) 
     hostname_valid, key_matches = _tls_check(domain, certificate, private_key)
     if not hostname_valid or not key_matches:
         raise ValueError("TLS_CONFIGURATION_INVALID")
-    server = ThreadingHTTPServer(("IP_REDACTED", 443), Handler)
+    server = ThreadingHTTPServer(("0.0.0.0", 443), Handler)
     server.probe_domain = domain.lower()
     server.allowed_source = allowed
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)

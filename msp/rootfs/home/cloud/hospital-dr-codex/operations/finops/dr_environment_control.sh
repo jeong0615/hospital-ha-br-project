@@ -63,14 +63,14 @@ fi
 DR_STATE_FAILURE_STATUS=FAILED
 DR_DOMAIN="${DR_DOMAIN:-hospital-web.pp.ua}"
 EMR_DOMAIN="${EMR_DOMAIN:-emr.hospital-web.pp.ua}"
-ONPREM_WEB_HEALTH_URL="${ONPREM_WEB_HEALTH_URL:-http://IP_REDACTED/}"
-ONPREM_EMR_HEALTH_URL="${ONPREM_EMR_HEALTH_URL:-http://IP_REDACTED/emr/}"
+ONPREM_WEB_HEALTH_URL="${ONPREM_WEB_HEALTH_URL:-http://203.0.113.10/}"
+ONPREM_EMR_HEALTH_URL="${ONPREM_EMR_HEALTH_URL:-http://203.0.113.10/emr/}"
 CF_ZONE_ID="${CF_ZONE_ID:-}"
 EMR_HEALTH_CHECK_HEADER="${EMR_HEALTH_CHECK_HEADER:-dr-emr-check-2026}"
 ONPREM_TUNNEL_HOST="${ONPREM_TUNNEL_HOST:-e6d3babc-8da8-45b4-85a3-a674302785fc.cfargotunnel.com}"
-ONPREM_EMR_DNS_IP_EXPECTED="${ONPREM_EMR_DNS_IP_EXPECTED:-IP_REDACTED}"
+ONPREM_EMR_DNS_IP_EXPECTED="${ONPREM_EMR_DNS_IP_EXPECTED:-1.209.148.228}"
 DR_WEB_EIP_EXPECTED="${DR_WEB_EIP_EXPECTED:-AWS_PUBLIC_IP_REDACTED}"
-DR_WEB_PRIVATE_IP_EXPECTED="${DR_WEB_PRIVATE_IP_EXPECTED:-IP_REDACTED}"
+DR_WEB_PRIVATE_IP_EXPECTED="${DR_WEB_PRIVATE_IP_EXPECTED:-10.20.10.10}"
 DR_CF_WEB_RECORD_ID_EXPECTED="${DR_CF_WEB_RECORD_ID_EXPECTED:-${CF_RECORD_ID:-4c35b40ec154fb21c92fc3795ce9d5ea}}"
 DR_CF_EMR_RECORD_ID_EXPECTED="${DR_CF_EMR_RECORD_ID_EXPECTED:-${CF_EMR_RECORD_ID:-4a4432c4e6290bcbd3dda5113ff8d560}}"
 ONPREM_SSH_KEY="${ONPREM_SSH_KEY:-}"
@@ -309,7 +309,7 @@ printf 'ONPREM_SOURCE_COORD\\t%s\\t%s\\n' \"\$source_uuid\" \"\$source_coordinat
     -o UserKnownHostsFile="$known_hosts" -o GlobalKnownHostsFile=/dev/null \
     -o ConnectTimeout=45 -o ConnectionAttempts=1 \
     -o ServerAliveInterval=15 -o ServerAliveCountMax=2 \
-    -i "$key_path" hoseo@IP_REDACTED "$remote_command" 2>/dev/null)" || return 1
+    -i "$key_path" hoseo@192.168.200.4 "$remote_command" 2>/dev/null)" || return 1
   line="$(printf '%s\n' "$output" | awk -F '\t' '$1 == "ONPREM_SOURCE_COORD" { print; count++ } END { if (count != 1) exit 1 }')" || return 1
   [ "$(printf '%s\n' "$line" | awk -F '\t' '{ print NF }')" -eq 4 ] || return 1
   printf '%s\n' "$line"
@@ -332,7 +332,7 @@ printf 'ONPREM_WRITER_FENCE\\t%s\\n' \"\$source_state\""
       -o UserKnownHostsFile="$known_hosts" -o GlobalKnownHostsFile=/dev/null \
       -o ConnectTimeout=45 -o ConnectionAttempts=1 \
       -o ServerAliveInterval=15 -o ServerAliveCountMax=2 \
-      -i "$key_path" hoseo@IP_REDACTED "$remote_command" 2>/dev/null)"; then
+      -i "$key_path" hoseo@192.168.200.4 "$remote_command" 2>/dev/null)"; then
     echo "[SOURCE WRITE FENCE BLOCKED] On-Prem MySQL write state could not be verified."
     return 1
   fi
@@ -368,7 +368,7 @@ dr_onprem_failback_db_wrapper() {
       -o UserKnownHostsFile="$known_hosts" -o GlobalKnownHostsFile=/dev/null \
       -o ConnectTimeout=45 -o ConnectionAttempts=1 \
       -o ServerAliveInterval=15 -o ServerAliveCountMax=2 \
-      -i "$key_path" hoseo@IP_REDACTED "$remote_command" 2>/dev/null)" || return 1
+      -i "$key_path" hoseo@192.168.200.4 "$remote_command" 2>/dev/null)" || return 1
   printf '%s\n' "$output"
 }
 
@@ -742,7 +742,7 @@ dr_verify_web_nat_bootstrap_ready() {
     'NAT_INSTANCE_STATUS=PENDING_LIVE_TEST'
     'CURRENT_EGRESS_MODE=WEB_NAT_INSTANCE_CANDIDATE'
     'WEB_INSTANCE_STATE=running'
-    'WEB_PRIVATE_IP=IP_REDACTED'
+    'WEB_PRIVATE_IP=10.20.10.10'
     'WEB_PUBLIC_IP=AWS_PUBLIC_IP_REDACTED'
     'WEB_VPC_ID=AWS_RESOURCE_ID_REDACTED'
     'WEB_SUBNET_ID=AWS_RESOURCE_ID_REDACTED'
@@ -918,7 +918,7 @@ PY
     fi
     if ! aws ec2 authorize-security-group-ingress --region "$REGION" \
         --group-id "$web_sg_id" --protocol tcp --port "$port" \
-        --cidr "IP_REDACTED/24" >/dev/null 2>&1; then
+        --cidr "10.20.20.0/24" >/dev/null 2>&1; then
       security_group_json="$(aws ec2 describe-security-groups --region "$REGION" \
         --group-ids "$web_sg_id" --output json 2>/dev/null || true)"
       if ! dr_nat_emr_ingress_rule_present "$security_group_json" "$web_sg_id" \
@@ -1176,7 +1176,7 @@ verify_dr_application_db_endpoint() {
   local target="$1" container="$2"
   dr_ssm_ssh "$target" "set -eu
 sudo docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' '$container' \\
-  | awk -F= -v expected_host=IP_REDACTED -v expected_port=3306 '
+  | awk -F= -v expected_host=10.20.30.10 -v expected_port=3306 '
       \$1 == \"DB_HOST\" { host=\$2; host_count++ }
       \$1 == \"DB_PORT\" { port=\$2; port_count++ }
       END { exit !(host_count == 1 && port_count == 1 && host == expected_host && port == expected_port) }'
@@ -1376,7 +1376,7 @@ start_environment() {
   fi
   echo "[SSM SSH] DB management uses its verified SSM target; running Web and EMR app containers are fenced before promotion."
   if [ "$SKIP_DNS" != "true" ]; then
-    if ! dr_ssm_wait_for_ssh "DR DB direct SSM IP_REDACTED" dr-db 18 5; then
+    if ! dr_ssm_wait_for_ssh "DR DB direct SSM 10.20.30.10" dr-db 18 5; then
       echo "[DB PROMOTION ERROR] Approved DR DB management connection was not verified."
       return 1
     fi
@@ -1483,7 +1483,7 @@ start_environment() {
     return 1
   fi
   mapfile -t ids < <(awk -F '\t' '{print $2}' <<< "$plan")
-  if ! dr_ssm_wait_for_ssh "DR Doc ${DR_DOC_PRIVATE_IP:-IP_REDACTED} through DR Web" dr-doc 18 5; then
+  if ! dr_ssm_wait_for_ssh "DR Doc ${DR_DOC_PRIVATE_IP:-10.20.20.10} through DR Web" dr-doc 18 5; then
     echo "[APPLICATION ERROR] Approved DR EMR management connection was not verified over the Web jump path."
     return 1
   fi
@@ -1525,14 +1525,14 @@ exit 1' >/dev/null; then
       return 1
     fi
     if ! web_health_code="$(dr_ssm_ssh dr-web 'set -eu
-code="$(curl --silent --show-error --max-time 10 --output /dev/null --write-out "%{http_code}" http://IP_REDACTED:3000/__hospital_dr/health)"
+code="$(curl --silent --show-error --max-time 10 --output /dev/null --write-out "%{http_code}" http://127.0.0.1:3000/__hospital_dr/health)"
 printf "WEB_HEALTH_HTTP=%s\n" "$code"
 [ "$code" = "204" ]')"; then
       echo "[APPLICATION VALIDATION ERROR] DR Web health must return HTTP 204; observed ${web_health_code:-UNAVAILABLE}."
       return 1
     fi
     if ! emr_health_code="$(dr_ssm_ssh dr-doc 'set -eu
-code="$(curl --silent --show-error --max-time 10 --output /dev/null --write-out "%{http_code}" http://IP_REDACTED:3000/__hospital_dr/health)"
+code="$(curl --silent --show-error --max-time 10 --output /dev/null --write-out "%{http_code}" http://127.0.0.1:3000/__hospital_dr/health)"
 printf "EMR_HEALTH_HTTP=%s\n" "$code"
 [ "$code" = "204" ]')"; then
       echo "[APPLICATION VALIDATION ERROR] DR EMR health must return HTTP 204; observed ${emr_health_code:-UNAVAILABLE}."

@@ -110,7 +110,7 @@ Web 상태와 민감정보 없는 Health만 확인한다.
 dr_ssm_ssh dr-web 'set -eu
 sudo systemctl is-active docker nginx
 sudo docker inspect --format "{{.State.Running}}|{{.State.Health.Status}}" hospital-dr-web
-code=$(curl --silent --show-error --max-time 10 -o /dev/null -w "%{http_code}" http://IP_REDACTED:3000/__hospital_dr/health)
+code=$(curl --silent --show-error --max-time 10 -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/__hospital_dr/health)
 printf "WEB_HEALTH_HTTP=%s\n" "$code"
 test "$code" = 204'
 ```
@@ -196,7 +196,7 @@ dr_ssm_wait_for_ssh "EMR through Web SSM jump" dr-doc 18 5
 dr_ssm_ssh dr-doc 'set -eu
 sudo systemctl is-active docker apache2
 sudo docker inspect --format "{{.State.Running}}|{{.State.Health.Status}}" hospital-dr-emr
-code=$(curl --silent --show-error --max-time 10 -o /dev/null -w "%{http_code}" http://IP_REDACTED:3000/__hospital_dr/health)
+code=$(curl --silent --show-error --max-time 10 -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/__hospital_dr/health)
 printf "EMR_HEALTH_HTTP=%s\n" "$code"
 test "$code" = 204'
 ```
@@ -304,7 +304,7 @@ if pgrep -x cloudflared >/dev/null; then echo CLOUDFLARED_PROCESS=PRESENT; else 
 ~~~bash
 dr_ssm_ssh dr-web 'set -eu
 token=$(curl --fail --silent --show-error --max-time 3 -X PUT \
-  http://IP_REDACTED/latest/api/token \
+  http://169.254.169.254/latest/api/token \
   -H X-aws-ec2-metadata-token-ttl-seconds:60)
 trap "unset token" EXIT
 iid=$(curl --fail --silent --show-error --max-time 3 \
@@ -312,10 +312,10 @@ iid=$(curl --fail --silent --show-error --max-time 3 \
   http://AWS_PUBLIC_IP_REDACTED/latest/meta-data/instance-id)
 ip=$(curl --fail --silent --show-error --max-time 3 \
   -H "X-aws-ec2-metadata-token: $token" \
-  http://IP_REDACTED/latest/meta-data/local-ipv4)
+  http://169.254.169.254/latest/meta-data/local-ipv4)
 printf "IMDS_INSTANCE_ID=%s\\nIMDS_PRIVATE_IP=%s\\n" "$iid" "$ip"
 test "$iid" = AWS_RESOURCE_ID_REDACTED
-test "$ip" = IP_REDACTED'
+test "$ip" = 10.20.10.10'
 ~~~
 
 NAT role은 별도 승인 대상이다. 먼저 기존 check-mode를 사용한다:
@@ -344,7 +344,7 @@ Web egress probe는 원래 public egress를 별도 승인으로 복원하고 부
 
 ~~~bash
 egress_ip=$(dr_ssm_ssh dr-web 'curl --fail --silent --show-error --max-time 10 https://checkip.amazonaws.com/')
-test "$egress_ip" = IP_REDACTED
+test "$egress_ip" = 52.79.244.146
 printf 'WEB_EGRESS_VIA_EIP=PASS\n'
 printf 'WEB_NAT_BOOTSTRAP_CHECKED_AT_UTC=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 AWS_REGION=ap-northeast-2 operations/nat_instance/web_nat_instance_status.sh

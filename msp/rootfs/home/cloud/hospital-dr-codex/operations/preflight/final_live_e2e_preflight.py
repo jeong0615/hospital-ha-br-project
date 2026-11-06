@@ -759,7 +759,7 @@ class FinalLivePreflight:
         # Grafana's datasource URL is often container-internal.  The
         # controller-side URL is explicit and defaults to the local published
         # API endpoint instead of guessing a Docker hostname.
-        zabbix_url = self.value("ZABBIX_CONTROLLER_API_URL", "http://IP_REDACTED/api_jsonrpc.php")
+        zabbix_url = self.value("ZABBIX_CONTROLLER_API_URL", "http://127.0.0.1/api_jsonrpc.php")
         body = json.dumps({"jsonrpc": "2.0", "method": "apiinfo.version", "params": {}, "id": 1}).encode("utf-8")
         try:
             request = urllib.request.Request(zabbix_url, data=body, headers={"Content-Type": "application/json"}, method="POST")
@@ -1199,7 +1199,7 @@ class FinalLivePreflight:
     def _zabbix_api_read(self, method: str, params: dict[str, Any]) -> Any:
         """Read Zabbix configuration without emitting credentials."""
 
-        api_url = self.value("ZABBIX_CONTROLLER_API_URL", "http://IP_REDACTED/api_jsonrpc.php")
+        api_url = self.value("ZABBIX_CONTROLLER_API_URL", "http://127.0.0.1/api_jsonrpc.php")
         request_id = 0
 
         def call(request_method: str, request_params: dict[str, Any], auth: str | None = None) -> Any:
