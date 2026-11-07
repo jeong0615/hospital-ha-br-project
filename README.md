@@ -358,8 +358,6 @@
 | **Remote Management** | Systems Manager / Session Manager | 기존 DR EC2 관리 접속 및 SSH 터널 제공 |
 | **Container Registry** | ECR | DR Docker 이미지 보관 및 배포 시 제공 |
 
-**운영 정책:** DR EC2는 수동 관리하며, Lambda를 통한 EC2 자동 종료는 적용하지 않는다. Lambda의 DNS 원복 기능은 전체 DB Failback 절차와 구분한다. Session Manager는 접속 터널을 제공하며, 실제 SSH 인증 및 명령 실행은 기존 SSH 경로를 사용한다.
-
 <br>
 <br>
 
@@ -385,10 +383,8 @@
 | Service | Primary | DR | DNS / 서비스 접속 경로 |
 | :--- | :--- | :--- | :--- |
 | **Web** | On-Prem Web | AWS Web DR | `hospital-web.pp.ua` |
-| **EMR** | On-Prem EMR | AWS EMR DR | Web 프록시 경로 `hospital-web.pp.ua/emr/` 및 별도 DNS `emr.hospital-web.pp.ua` |
+| **EMR** | On-Prem EMR | AWS EMR DR | `hospital-web.pp.ua/emr/` |
 | **DB** | On-Prem DB | AWS DB DR | 내부 MySQL 연결 |
-
-**참고:** `/emr/`는 DNS 레코드가 아닌 Web 프록시 기반 서비스 접속 경로이며, `emr.hospital-web.pp.ua`는 별도의 DNS 도메인이다.
 
 <br>
 
@@ -397,8 +393,6 @@
 | Component | Network / Endpoint | Purpose |
 | :--- | :--- | :--- |
 | **WireGuard** | AWS Web `10.250.0.1` ↔ On-Prem DB `10.250.0.2` | MySQL NR 복제 및 Failback DB 통신 |
-
-**통신 구조:** AWS Web에 구성된 WireGuard Gateway를 통해 On-Prem DB와 VPN 통신을 수행한다. 최종 성공 로그의 DB 연결 대상은 `10.250.0.2:3306`이며, 해당 경로는 NR 복제와 Failback DB 통신에 사용된다.
 
 <br>
 <br>
@@ -410,8 +404,6 @@
 | **지속 복제** | MySQL Binlog File/Position 기반 Native Replication | 메인 DR 복제 | On-Prem DB 변경사항을 AWS DB DR에 비동기 반영 |
 | **백업 시점 복구** | 암호화 논리 Dump / S3 | 보조 복구 | 복제 데이터 오염 또는 장애 시 선택한 정상 백업의 데이터로 복원 |
 | **복구 전략 이원화** | NR + Dump | 데이터 최신성 및 복구 안정성 | 지속 복제와 백업 복원을 병행하여 DR 복구 방식 이원화 |
-
-**복구 범위:** Native Replication은 Binlog 기반 비동기 복제로 데이터 변경사항을 지속 반영한다. Dump 복원은 선택한 백업 시점의 데이터를 복구하는 방식이며, 임의 시점까지 Binlog를 추가 적용하는 PITR(Point-in-Time Recovery)과 구분한다.
 
 <br>
 <br>
@@ -452,7 +444,3 @@ GitHub 소스 코드
 | **AWS 인증** | GitHub OIDC / IAM | 장기 AWS Access Key 대신 임시 권한 사용 |
 | **Registry** | Amazon ECR | `main` 브랜치 Push 시 SHA 태그 이미지 저장 |
 | **Service Configuration** | Terraform / Ansible | AWS 리소스 및 DR 서버 설정·복구 자동화 (CI/CD와 역할 구분) |
-
-**구현 범위:** GitHub Actions는 PR·수동 실행·Push 이벤트에서 빌드 및 검사를 수행하며, 최종 SHA 태그 이미지의 ECR Push는 `main` 브랜치의 Push 이벤트로 제한한다.
-
-현재 워크플로에는 EC2 자동 재배포 단계가 없으며, ECR 이미지 등록과 실제 EC2 컨테이너 배포·복구는 별도의 절차로 구분한다.
