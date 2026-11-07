@@ -343,7 +343,7 @@
 | **Routing** | Route Table | Public / Private Subnet 라우팅 제어 |
 | **Internet** | Internet Gateway | Web DR 인터넷 통신 |
 | **Outbound** | Web NAT Instance | Private EMR/DB 서버의 외부 통신 제공 |
-| **DR VPN Gateway** | AWS Web + WireGuard | On-Prem DB와 AWS DR 간 Direct NR 전용 VPN Gateway |
+| **DR VPN Gateway** | AWS Web + WireGuard | On-Prem DB와 AWS DR 간 NR 복제 및 Failback DB 통신용 VPN Gateway |
 | **Public IP** | Elastic IP | Web DR / WireGuard Endpoint |
 | **Security** | Security Group | Web / EMR / DB 서비스별 접근 제어 |
 | **Access Control** | IAM | AWS 리소스 및 자동화 접근 권한 관리 |
@@ -352,10 +352,13 @@
 
 | 운영 / 자동화 분류 | AWS 서비스 | 기술 활용 |
 | :--- | :--- | :--- |
-| **Automation** | Lambda | EC2 Stop 및 DR 비용 최적화 자동화 |
-| **Scheduling** | EventBridge | FinOps 자동화 작업 스케줄링 |
-| **Logging** | CloudWatch Logs | Lambda 및 AWS 자동화 로그 저장 |
-| **Container Registry** | ECR | DR Docker Image 저장 및 배포 |
+| **Automation** | Lambda | DR DNS 점검·원복 및 비용 관리 보조 로직 |
+| **Scheduling** | EventBridge | 예약된 Lambda 작업 호출 |
+| **Logging** | CloudWatch Logs | Lambda 실행 로그 저장 |
+| **Remote Management** | Systems Manager / Session Manager | 기존 DR EC2 관리 접속 및 SSH 터널 제공 |
+| **Container Registry** | ECR | DR Docker 이미지 보관 및 배포 시 제공 |
+
+**운영 정책:** DR EC2는 수동 관리하며, Lambda를 통한 EC2 자동 종료는 적용하지 않는다. Lambda의 DNS 원복 기능은 전체 DB Failback 절차와 구분한다. Session Manager는 접속 터널을 제공하며, 실제 SSH 인증 및 명령 실행은 기존 SSH 경로를 사용한다.
 
 <br>
 <br>
@@ -373,25 +376,29 @@
 
 | DR Server | Subnet | Private IP | Public IP | Role |
 | :--- | :--- | :--- | :--- | :--- |
-| **Web DR** | Public | `10.20.10.10/24` | `52.79.244.146` | Web DR |
-| **EMR DR** | Private | `10.20.20.10/24` | - | EMR Document DR |
-| **DB DR** | Private | `10.20.30.10/24` | - | Database DR |
+| **Web DR** | Public | `10.20.10.10` | `52.79.244.146` | Web DR |
+| **EMR DR** | Private | `10.20.20.10` | - | EMR Document DR |
+| **DB DR** | Private | `10.20.30.10` | - | Database DR |
 
 <br>
 
-| Service | Primary | DR | DNS Failover |
+| Service | Primary | DR | DNS / 서비스 접속 경로 |
 | :--- | :--- | :--- | :--- |
 | **Web** | On-Prem Web | AWS Web DR | `hospital-web.pp.ua` |
-| **EMR** | On-Prem EMR | AWS EMR DR | `hospital-web.pp.ua/emr` |
-| **DB** | On-Prem DB | AWS DB DR | - |
+| **EMR** | On-Prem EMR | AWS EMR DR | Web 프록시 경로 `hospital-web.pp.ua/emr/` 및 별도 DNS `emr.hospital-web.pp.ua` |
+| **DB** | On-Prem DB | AWS DB DR | 내부 MySQL 연결 |
+
+**참고:** `/emr/`는 DNS 레코드가 아닌 Web 프록시 기반 서비스 접속 경로이며, `emr.hospital-web.pp.ua`는 별도의 DNS 도메인이다.
 
 <br>
 
 ## [CSP] 🌐︎ VPN 네트워크
 
-| Component | Local Network | Target | Purpose |
-| :--- | :--- | :--- | :--- |
-| **WireGuard** | `10.251.0.0/24` | On-Prem DB ↔ AWS DR | 실시간 데이터 전송 |
+| Component | Network / Endpoint | Purpose |
+| :--- | :--- | :--- |
+| **WireGuard** | AWS Web `10.250.0.1` ↔ On-Prem DB `10.250.0.2` | MySQL NR 복제 및 Failback DB 통신 |
+
+**통신 구조:** AWS Web에 구성된 WireGuard Gateway를 통해 On-Prem DB와 VPN 통신을 수행한다. 최종 성공 로그의 DB 연결 대상은 `10.250.0.2:3306`이며, 해당 경로는 NR 복제와 Failback DB 통신에 사용된다.
 
 <br>
 <br>
@@ -400,9 +407,11 @@
 
 | 구분 | 방식 | 역할 | 설명 |
 | :--- | :--- | :--- | :--- |
-| **실시간 복제** | MySQL Binlog CDC (Native Replication) | 메인 DR 복제 | On-Prem DB 변경사항을 AWS DB DR에 실시간 반영 |
-| **시점 복구** | 암호화 Dump / S3 | 보조 복구 | 복제 데이터 오염 또는 장애 시 정상 시점의 백업으로 복구 |
-| **하이브리드** | CDC(NR) + Dump | 최신성 + 안정성 | 실시간 복제와 시점 백업을 병행하여 DR 복구 방식 이원화 |
+| **지속 복제** | MySQL Binlog File/Position 기반 Native Replication | 메인 DR 복제 | On-Prem DB 변경사항을 AWS DB DR에 비동기 반영 |
+| **백업 시점 복구** | 암호화 논리 Dump / S3 | 보조 복구 | 복제 데이터 오염 또는 장애 시 선택한 정상 백업의 데이터로 복원 |
+| **복구 전략 이원화** | NR + Dump | 데이터 최신성 및 복구 안정성 | 지속 복제와 백업 복원을 병행하여 DR 복구 방식 이원화 |
+
+**복구 범위:** Native Replication은 Binlog 기반 비동기 복제로 데이터 변경사항을 지속 반영한다. Dump 복원은 선택한 백업 시점의 데이터를 복구하는 방식이며, 임의 시점까지 Binlog를 추가 적용하는 PITR(Point-in-Time Recovery)과 구분한다.
 
 <br>
 <br>
@@ -415,23 +424,35 @@
 
 ```text
 GitHub 소스 코드
-    → GitHub Actions 실행
+    → GitHub Actions 실행 (PR / 수동 실행 / Push)
     → Docker 이미지 빌드
-    → Trivy 취약점 검사
+    → 보안 및 품질 검사
+        ├─ Trivy 컨테이너 취약점 검사
+        ├─ npm audit 의존성 검사
+        ├─ Gitleaks Secret 검사
+        └─ Python / Bash / Terraform / Ansible 검증
     → Health / Security Gate
-    → GitHub OIDC 기반 AWS 권한 획득
-    → Amazon ECR에 SHA 태그 이미지 Push
+    → 실행 조건 확인
+        ├─ PR / 수동 실행: 빌드·검사 수행
+        └─ main 브랜치 Push:
+            → GitHub OIDC 기반 AWS 권한 획득
+            → Amazon ECR에 SHA 태그 이미지 Push
     → DR 배포 절차에서 검증 이미지 사용
 ```
 
 | 구분 | 사용 기술 | 적용 내용 |
 | :--- | :--- | :--- |
-| **Source / Workflow** | GitHub / GitHub Actions | 소스 변경에 따른 워크플로 실행 및 빌드 과정 자동화 |
+| **Source / Workflow** | GitHub / GitHub Actions | PR·수동 실행·Push 이벤트에 따른 빌드 및 검사 자동화 |
 | **Build** | Docker | Web·EMR 애플리케이션 이미지 생성 |
-| **Security Scan** | Trivy | 컨테이너 이미지의 알려진 취약점 검사 |
-| **Quality Gate** | Health / Security Gate | 배포 전 점검 조건 평가 |
+| **Container Security** | Trivy | 컨테이너 이미지의 알려진 취약점 검사 |
+| **Dependency Security** | npm audit | 애플리케이션 의존성 취약점 검사 |
+| **Secret Security** | Gitleaks | 소스 코드 내 민감정보 및 Secret 노출 검사 |
+| **Code / IaC Validation** | Python / Bash / Terraform / Ansible | 스크립트 및 인프라 구성 검증 |
+| **Quality Gate** | Health / Security Gate | 빌드·보안·품질 점검 조건 평가 |
 | **AWS 인증** | GitHub OIDC / IAM | 장기 AWS Access Key 대신 임시 권한 사용 |
-| **Registry** | Amazon ECR | SHA 기반 태그로 이미지 식별 및 보관 |
+| **Registry** | Amazon ECR | `main` 브랜치 Push 시 SHA 태그 이미지 저장 |
 | **Service Configuration** | Terraform / Ansible | AWS 리소스 및 DR 서버 설정·복구 자동화 (CI/CD와 역할 구분) |
 
-**구현 범위:** GitHub Actions의 빌드·검사·ECR Push 자동화와, 실제 EC2에서 컨테이너를 적용하는 배포·복구 절차는 구분한다. EC2 자동 재배포까지 수행하는지는 해당 워크플로와 실행 로그를 기준으로 확인한다.
+**구현 범위:** GitHub Actions는 PR·수동 실행·Push 이벤트에서 빌드 및 검사를 수행하며, 최종 SHA 태그 이미지의 ECR Push는 `main` 브랜치의 Push 이벤트로 제한한다.
+
+현재 워크플로에는 EC2 자동 재배포 단계가 없으며, ECR 이미지 등록과 실제 EC2 컨테이너 배포·복구는 별도의 절차로 구분한다.
